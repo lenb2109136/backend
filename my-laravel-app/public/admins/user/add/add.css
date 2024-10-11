@@ -1,0 +1,7 @@
+.select2-container .select2-selection__choice {
+    padding-left: 26px !important;
+}
+.select2-selection__choice__display {
+    background-color: black;
+    color: white;
+}

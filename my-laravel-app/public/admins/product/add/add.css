@@ -1,0 +1,19 @@
+.select2-container .select2-selection__choice {
+    background-color: #0c0c0c !important;
+    padding-left: 26px !important;
+}
+.alert-danger {
+    color: red;
+    background-color: transparent;
+    border: none;
+}
+.alert-fix {
+    padding: 0 0;
+    margin-bottom: -10px;
+}
+label.is-invalid {
+    color: red; /* Đổi màu chữ thành đỏ khi có lỗi */
+}
+.alert-fix-file {
+    margin-top: -10px;
+}

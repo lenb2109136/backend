@@ -1,0 +1,7 @@
+.dropdown-menu .dropdown-item:hover {
+    background-color: #dad4d4; /* Light gray color */
+    color: #000; /* Text color */
+}
+.btn-edit {
+    margin-right: 70px;
+}

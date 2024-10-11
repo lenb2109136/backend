@@ -1,0 +1,213 @@
+@extends('layouts.admin')
+
+@section('title')
+    <title>Product</title>
+@endsection
+
+@section('css')
+    <link rel="stylesheet" href="{{ asset('admins/product/index/list.css') }}">
+@endsection
+@section('js')
+    <script src=" {{ asset('vendors/sweetAlert2/sweetalert2@11.js') }}"></script>
+    <script src="{{ asset('admins/product/index/list.js') }}"></script>
+@endsection
+
+
+@section('content')
+    <div class="content-wrapper">
+        @include('partials.content-header', ['name' => 'product', 'key' => 'List'])
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <a href="{{ route('product.create') }}" class="btn btn-success float-right m-2">Add</a>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="row mb-2">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Tên Sản phẩm</th>
+                                        <th scope="col">Giá</th>
+                                        <th scope="col">Hình ảnh</th>
+                                        <th scope="col">Danh mục</th>
+                                        <th scope="col">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($products as $productItem)
+                                        <tr>
+                                            <th scope="row">{{ $productItem->id }}</th>
+                                            <td>{{ $productItem->name }}</td>
+                                            <td>{{ number_format((float) str_replace(',', '.', preg_replace('/[^\d,]/', '', $productItem->price)), 0, ',', '.') }}
+                                            </td>
+
+                                            <td>
+                                                <img class="product_image_150_100"
+                                                    src="{{ $productItem->feature_image_path }}" alt="">
+                                            </td>
+                                            <td>{{ optional($productItem->category)->name }}</td>
+                                            <td>
+                                                <a href="{{ route('product.edit', ['id' => $productItem->id]) }}"
+                                                    class="btn btn-default">Edit</a>
+                                                <a href=""
+                                                    data-url = "{{ route('product.delete', ['id' => $productItem->id]) }}"
+                                                    class="btn btn-danger action_delete">Delete</a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="d-flex justify-content-start mb-3">
+                            <span class="mr-2">
+                                Hiện tại có <strong>{{ $products->count() }}</strong> sản phẩm đang được hiển thị trong
+                                tổng
+                                số <strong>{{ $products->total() }}</strong> sản phẩm.
+                            </span>
+
+                        </div>
+
+                        @if ($products->hasPages())
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination">
+                                    {{-- Previous Page Link --}}
+                                    @if ($products->onFirstPage())
+                                        <li class="page-item disabled" aria-disabled="true">
+                                            <span class="page-link">
+                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                                        clip-rule="evenodd"></path>
+                                                </svg>
+                                            </span>
+                                        </li>
+                                    @else
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $products->previousPageUrl() }}" rel="prev">
+                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd"
+                                                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                                        clip-rule="evenodd"></path>
+                                                </svg>
+                                            </a>
+                                        </li>
+                                    @endif
+
+                                    {{-- Pagination Elements --}}
+                                    @foreach ($products->links()->elements as $element)
+                                        {{-- "Three Dots" Separator --}}
+                                        @if (is_string($element))
+                                            <li class="page-item disabled" aria-disabled="true"><span
+                                                    class="page-link">{{ $element }}</span></li>
+                                        @endif
+
+                                        {{-- Array Of Links --}}
+                                        @if (is_array($element))
+                                            @foreach ($element as $page => $url)
+                                                @if ($page == $products->currentPage())
+                                                    <li class="page-item active" aria-current="page"><span
+                                                            class="page-link">{{ $page }}</span></li>
+                                                @else
+                                                    <li class="page-item"><a class="page-link"
+                                                            href="{{ $url }}">{{ $page }}</a></li>
+                                                @endif
+                                            @endforeach
+                                        @endif
+                                    @endforeach
+
+                                    {{-- Next Page Link --}}
+                                    @if ($products->hasMorePages())
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $products->nextPageUrl() }}" rel="next">
+                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd"
+                                                        d="M7.293 5.293a1 1 0 010 1.414L10.586 10l-3.293 3.293a1 1 0 011.414 1.414l4-4a1 1 0 000-1.414l-4-4a1 1 0 00-1.414 0z"
+                                                        clip-rule="evenodd"></path>
+                                                </svg>
+                                            </a>
+                                        </li>
+                                    @else
+                                        <li class="page-item disabled" aria-disabled="true">
+                                            <span class="page-link">
+                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd"
+                                                        d="M7.293 5.293a1 1 0 010 1.414L10.586 10l-3.293 3.293a1 1 0 011.414 1.414l4-4a1 1 0 000-1.414l-4-4a1 1 0 00-1.414 0z"
+                                                        clip-rule="evenodd"></path>
+                                                </svg>
+                                            </span>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </nav>
+                        @endif
+                    </div>
+
+
+                </div>
+                <!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </div>
+
+        {{-- <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Card title</h5>
+                            <p class="card-text">
+                                Some quick example text to build on the card title and make up the bulk of the card's
+                                content.
+                            </p>
+                            <a href="#" class="card-link">Card link</a>
+                            <a href="#" class="card-link">Another link</a>
+                        </div>
+                    </div>
+
+                    <div class="card card-primary card-outline">
+                        <div class="card-body">
+                            <h5 class="card-title">Card title</h5>
+                            <p class="card-text">
+                                Some quick example text to build on the card title and make up the bulk of the card's
+                                content.
+                            </p>
+                            <a href="#" class="card-link">Card link</a>
+                            <a href="#" class="card-link">Another link</a>
+                        </div>
+                    </div><!-- /.card -->
+                </div>
+                <!-- /.col-lg-6 -->
+
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="m-0">Featured</h5>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title">Special title treatment</h6>
+                            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                            <a href="#" class="btn btn-primary">Go somewhere</a>
+                        </div>
+                    </div>
+
+                    <div class="card card-primary card-outline">
+                        <div class="card-header">
+                            <h5 class="m-0">Featured</h5>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title">Special title treatment</h6>
+                            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                            <a href="#" class="btn btn-primary">Go somewhere</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.col-lg-6 -->
+            </div>
+            <!-- /.row -->
+        </div><!-- /.container-fluid --> --}}
+    </div>
+@endsection

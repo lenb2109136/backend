@@ -1,0 +1,10 @@
+/* CSS tùy chỉnh cho phân trang */
+.pagination .page-item .page-link {
+    font-size: 0.75rem; /* Giảm kích thước chữ */
+    padding: 0.25rem 0.5rem; /* Giảm padding */
+}
+
+.pagination .page-item:first-child .page-link::before, 
+.pagination .page-item:last-child .page-link::after {
+    font-size: 0.75rem; /* Giảm kích thước mũi tên */
+}

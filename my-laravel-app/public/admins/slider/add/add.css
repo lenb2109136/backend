@@ -1,0 +1,20 @@
+.alert-danger {
+    color: red;
+    background-color: transparent;
+    border: none;
+}
+.alert-fix {
+    padding: 0 0;
+    margin-bottom: -10px;
+}
+label.is-invalid {
+    color: red; /* Đổi màu chữ thành đỏ khi có lỗi */
+}
+.alert-fix-file {
+    margin-top: -10px;
+}
+.product_image_150_100 {
+    width: 150px;
+    height: 100px;
+    object-fit: cover;
+}
