@@ -54,28 +54,45 @@ public class TourService {
 			float gia = ((Number) l.get(i).get("gia")).floatValue();
 			boolean kiemtra = false;
 			if (gia >= a && gia <= b) {
-				for (int u = 0; u < ngay.size(); u++) {
-					boolean f = false;
-					if (d1 >= (Integer) ngay.get(u).get("batDau") && d1 <= (Integer) ngay.get(u).get("KetThuc")) {
-						
-						f = true;
-						for (int k = 0; k < ThoiLuong.size(); k++) {
-							if (songay >= (Integer) ThoiLuong.get(k).get("batDau")
-									&& songay <= (Integer) ThoiLuong.get(k).get("KetThuc")) {
-								
-							} else {
-								f = false;
+				if (ngay.size() == 0 && ThoiLuong.size() == 0) {
+					l2.add(l.get(i));
+				} else {
+					System.out.println("số lượng phần tử của danh sách ngày: " + ngay.size());
+					if (ngay.size() == 0) {
+						l2.add(l.get(i));
+					} else {
+						for (int u = 0; u < ngay.size(); u++) {
+							boolean f = false;
+							if (d1 >= (Integer) ngay.get(u).get("batDau")
+									&& d1 <= (Integer) ngay.get(u).get("KetThuc")) {
+								System.out.println("đã đi vào đaay so sánh ......");
+								f = true;
+								if (ThoiLuong.size() == 0) {
+									l2.add(l.get(i));
+								} else {
+									for (int k = 0; k < ThoiLuong.size(); k++) {
+										System.out.println("đã vào thời lượng so sánh : ");
+										System.out.println("số ngày"+ songay);
+										System.out.println("thòi bd: "+(Integer) ThoiLuong.get(k).get("batDau"));
+										System.out.println("thòi kết thúc"+(Integer) ThoiLuong.get(k).get("KetThuc") );
+										if (songay >= (Integer) ThoiLuong.get(k).get("batDau")
+												&& songay <= (Integer) ThoiLuong.get(k).get("KetThuc")) {
+													System.out.println("so sánh đúng");
+													l2.add(l.get(i));
+													break;
+										} else {
+											System.out.println("so sánh sai");
+											f = false;
+										}
+									}
+								}
 							}
 							if (f == true) {
-								l2.add(l.get(i));
 								break;
 							}
+
 						}
 					}
-					if (f == true) {
-						break;
-					}
-
 				}
 			}
 
