@@ -29,6 +29,7 @@ public class ThoiGianKhoiHanh {
 	@Column(name = "TGKH_GIA")
 	private float gia;
 	
+	@JsonIgnore
 	@OneToMany(mappedBy = "thoiGianKhoiHanhl")
 	private List<GiaUuDai> giaUuDai;
 	

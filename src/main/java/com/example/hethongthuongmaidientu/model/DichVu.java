@@ -23,6 +23,23 @@ public class DichVu {
 	    
 	    @Column(name = "DV_GIA")
 	    private Float gia;
+	    
+	    @Column(name = "DV_ANH")
+	    private String anh;
+	    
+	    
+
+		public String getAnh() {
+			return anh;
+		}
+
+		public void setAnh(String anh) {
+			this.anh = anh;
+		}
+
+		public void setGia(Float gia) {
+			this.gia = gia;
+		}
 
 		public int getId() {
 			return id;

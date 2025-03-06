@@ -31,7 +31,6 @@ public class GiaUuDai {
 	private LocalDateTime ngayKetThuc;
 	
 	
-	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "TGKH_ID")
 	private ThoiGianKhoiHanh thoiGianKhoiHanhl;
