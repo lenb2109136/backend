@@ -23,7 +23,7 @@ public interface TourRepository extends JpaRepository<Tour, Integer>{
 			+ "JOIN thoigiankhoihanh tt ON t.T_ID=tt.T_ID  WHERE tt.TGKH_THOIGIAN>NOW() AND LT_ID=:lt GROUP BY t.T_ID ",nativeQuery = true)
 	public List<Map<Object, Object>> getListTour(int lt);
 	
-	@Query(value = "SELECT \r\n"
+	@Query(value = "SELECT DISTINCT \r\n"
 			+ "    t.T_ID,\r\n"
 			+ "    t.T_TEN,\r\n"
 			+ "    t.T_SONGAY,\r\n"
