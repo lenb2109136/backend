@@ -2,6 +2,8 @@ package com.example.hethongthuongmaidientu.model;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -36,6 +38,20 @@ public class KhachHang {
 
     @Column(name = "KH_NAMSINH")
     private LocalDate namSinh;
+    
+    @JsonIgnore
+    @Column(name = "KH_MATKHAU")
+    private String matKhau;
+    
+    
+    
+	public String getMatKhau() {
+		return matKhau;
+	}
+
+	public void setMatKhau(String matKhau) {
+		this.matKhau = matKhau;
+	}
 
 	public int getId() {
 		return id;

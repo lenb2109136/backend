@@ -15,6 +15,28 @@ public interface TourRepository extends JpaRepository<Tour, Integer>{
 			+ "JOIN thoigiankhoihanh tt ON t.T_ID=tt.T_ID LEFT JOIN phanhoi p ON p.T_ID=t.T_ID WHERE tt.TGKH_THOIGIAN>NOW() GROUP BY t.T_ID LIMIT 6",nativeQuery = true)
 	public List<Map<Object, Object>> getHomeTour();
 	
+	@Query(value = "SELECT t.*\r\n"
+			+ "	FROM \r\n"
+			+ "	    tour t\r\n"
+			+ "	JOIN \r\n"
+			+ "	    thoigiankhoihanh tt ON t.T_ID = tt.T_ID\r\n"
+			+ "	LEFT JOIN \r\n"
+			+ "	    phanhoi p ON p.T_ID = t.T_ID\r\n"
+			+ "	WHERE \r\n"
+			+ "	    tt.TGKH_THOIGIAN > NOW()\r\n"
+			+ "	GROUP BY \r\n"
+			+ "	    t.T_ID\r\n",nativeQuery = true)
+	public List<Tour> getadmintour();
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
 	@Query(value = "SELECT t.T_ID,t.T_TEN,t.T_SONGAY,t.T_SODEM,t.T_ANH,AVG(tt.TGKH_GIA) as gia FROM tour t \r\n"
 			+ "JOIN thoigiankhoihanh tt ON t.T_ID=tt.T_ID  WHERE tt.TGKH_THOIGIAN>NOW() GROUP BY t.T_ID ",nativeQuery = true)
 	public List<Map<Object, Object>> getListTour();
@@ -34,7 +56,8 @@ public interface TourRepository extends JpaRepository<Tour, Integer>{
 			+ "FROM tour t\r\n"
 			+ "JOIN thoigiankhoihanh tt ON t.T_ID = tt.T_ID  \r\n"
 			+ "WHERE tt.TGKH_THOIGIAN > NOW() \r\n"
-			+ "AND t.LT_ID = :id\r\n"
-			+ "GROUP BY t.T_ID, t.T_TEN, t.T_SONGAY, t.T_SODEM, t.T_ANH, TGKH_THOIGIAN",nativeQuery = true)
-	public List<Map<Object, Object>> getListTourFilter(int id);
+			+ "AND t.LT_ID = :id AND (t.T_TEN like %:ten% OR t.T_MOTA like %:ten%) \r\n"
+			+ "GROUP BY t.T_ID, t.T_TEN, t.T_SONGAY, t.T_SODEM, t.T_ANH, TGKH_THOIGIAN", nativeQuery = true)
+public List<Map<Object, Object>> getListTourFilter(int id, String ten);
+
 }

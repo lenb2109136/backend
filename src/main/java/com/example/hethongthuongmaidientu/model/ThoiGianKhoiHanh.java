@@ -29,7 +29,21 @@ public class ThoiGianKhoiHanh {
 	@Column(name = "TGKH_GIA")
 	private float gia;
 	
-	@JsonIgnore
+	@ManyToOne
+	@JoinColumn(name = "NV_ID")
+	private NHANVIEN nhanVien;
+	
+	
+	
+	public NHANVIEN getNhanVien() {
+		return nhanVien;
+	}
+
+	public void setNhanVien(NHANVIEN nhanVien) {
+		this.nhanVien = nhanVien;
+	}
+
+	//	@JsonIgnore
 	@OneToMany(mappedBy = "thoiGianKhoiHanhl")
 	private List<GiaUuDai> giaUuDai;
 	

@@ -24,13 +24,14 @@ public class GiaUuDai {
 	@Column(name = "GUD_GIA")
 	private Float gia;
 	
-	@Column(name = "GUD_NGAYAPDUNG")
+	@Column(name = "GUD_NGAPAPDUNG")
 	private LocalDateTime ngayGioApDung;
 	
 	@Column(name = "GUD_NGAYKETTHUC")
 	private LocalDateTime ngayKetThuc;
 	
 	
+	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "TGKH_ID")
 	private ThoiGianKhoiHanh thoiGianKhoiHanhl;

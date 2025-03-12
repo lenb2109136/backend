@@ -1,5 +1,7 @@
 package com.example.hethongthuongmaidientu.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,10 +23,31 @@ public class NHANVIEN {
 	    private String anh;
 
 	    @Column(name = "NV_SDT")
-	    private String sdt;
+	    private String soDienThoai;
 
 	    @Column(name = "NV_SOCMND")
 	    private String socmnd;
+
+	    @JsonIgnore
+	    @Column(name = "NV_MATKHAU")
+	    private String matKhau;
+	    
+	    
+		public String getSoDienThoai() {
+			return soDienThoai;
+		}
+
+		public void setSoDienThoai(String soDienThoai) {
+			this.soDienThoai = soDienThoai;
+		}
+
+		public String getMatKhau() {
+			return matKhau;
+		}
+
+		public void setMatKhau(String matKhau) {
+			this.matKhau = matKhau;
+		}
 
 		public int getId() {
 			return id;
@@ -51,11 +74,11 @@ public class NHANVIEN {
 		}
 
 		public String getSdt() {
-			return sdt;
+			return soDienThoai;
 		}
 
 		public void setSdt(String sdt) {
-			this.sdt = sdt;
+			this.soDienThoai = sdt;
 		}
 
 		public String getSocmnd() {

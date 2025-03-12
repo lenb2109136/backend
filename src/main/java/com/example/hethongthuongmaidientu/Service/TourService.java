@@ -39,7 +39,11 @@ public class TourService {
 	}
 
 	public List<Map<Object, Object>> getByFilter(Map<String, Object> map) {
-		List<Map<Object, Object>> l = tourRepository.getListTourFilter((Integer) map.get("loai"));
+		String ten=(String)map.get("ten");
+		if(ten==null||ten=="") {
+			ten="";
+		}
+		List<Map<Object, Object>> l = tourRepository.getListTourFilter((Integer) map.get("loai"),ten);
 		List<Map<Object, Object>> l2 = new ArrayList<Map<Object, Object>>();
 		List<Map<Object, Object>> ngay = (List<Map<Object, Object>>) map.get("dsNgay");
 		List<Map<Object, Object>> ThoiLuong = (List<Map<Object, Object>>) map.get("thoiLuong");

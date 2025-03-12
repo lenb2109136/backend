@@ -6,6 +6,17 @@ public class Response {
 	private HttpStatus status;
 	private String message;
 	private Object data;
+	
+	public Response(HttpStatus status, String message, Object data) {
+        this.status = status;
+        this.message = message;
+        this.data = data;
+    }
+	
+	
+	public Response() {
+	}
+
 
 	public HttpStatus getStatus() {
 		return status;
