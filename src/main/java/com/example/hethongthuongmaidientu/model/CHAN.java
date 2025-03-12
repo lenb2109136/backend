@@ -13,40 +13,50 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 
 @Table(name = "CHAN")
 @Entity
 public class CHAN {
 	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "C_ID")
-    private int id;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "C_ID")
+	private int id;
 
-    @Column(name = "C_DIADIEMDEN")
-    private String DiaDiemDen;
+	@NotBlank(message = "Vui lòng nhập tên địa điểm đến")
+	@Column(name = "C_DIADIEMDEN")
+	private String DiaDiemDen;
 
-    @Column(name = "C_MOTA")
-    private String moTa;
-    
-    @Column(name = "C_NGAYBATDAU")
-    private LocalDate ngayBatDau;
-    
-    @Column(name = "C_NGAYKETTHUC")
-    private LocalDate ngayKetThuc;
-    
-    @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "T_ID")
-    private Tour tour;
-    
+	@Column(name = "C_MOTA")
+	private String moTa;
+
+	@Column(name = "C_NGAYBATDAU")
+	private LocalDate ngayBatDau;
+
+	@Column(name = "C_NGAYKETTHUC")
+	private LocalDate ngayKetThuc;
+
+	@JsonIgnore
+	@ManyToOne
+	@JoinColumn(name = "T_ID")
+	private Tour tour;
+
 	public int getId() {
 		return id;
+	}
+
+	public Tour getTour() {
+		return tour;
+	}
+
+	public void setTour(Tour tour) {
+		this.tour = tour;
 	}
 
 	public void setId(int id) {
 		this.id = id;
 	}
-	
+
 	public String getDiaDiemDen() {
 		return DiaDiemDen;
 	}
@@ -78,8 +88,5 @@ public class CHAN {
 	public void setNgayKetThuc(LocalDate ngayKetThuc) {
 		this.ngayKetThuc = ngayKetThuc;
 	}
-	
-	
-    
-    
+
 }

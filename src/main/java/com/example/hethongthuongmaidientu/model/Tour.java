@@ -12,63 +12,73 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Table(name = "TOUR")
 @Entity
 public class Tour {
 	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "T_ID")
-    private int id;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "T_ID")
+	private int id;
 
-    @Column(name = "T_THOIGIANKHOIHANH")
-    private LocalDateTime thoiGianKhoiHanh;
+	@Column(name = "T_THOIGIANKHOIHANH")
+	private LocalDateTime thoiGianKhoiHanh;
 
-    @Column(name = "T_SONGAY")
-    private Integer soNgay;
+	@Column(name = "T_SONGAY")
+	@Min(value = 1, message = "Số ngày không được bé hơn 1")
+	private Integer soNgay;
 
-    @Column(name = "T_SODEM")
-    private Integer soDem;
+	@Column(name = "T_SODEM")
+	@Min(value = 1, message = "Số đêm không được bé hơn 1")
+	private Integer soDem;
 
-    @Column(name = "T_SONGUOITHAMGIA")
-    private Integer soNguoiThamGia;
+	@Column(name = "T_SONGUOITHAMGIA")
+	@Min(value = 1, message = "Số người tham gia không được bé hơn 1")
+	private Integer soNguoiThamGia;
 
-    @Column(name = "T_MOTA")
-    private String moTa;
+	@Column(name = "T_MOTA")
+	private String moTa;
 
-    @Column(name = "T_TEN")
-    private String ten;
-    
-    @Column(name = "T_ANH")
-    private String anh;
-    
-    @ManyToOne
-    @JoinColumn(name = "LT_ID")
-    private LoaiTour loaiTour;
-    
-    @ManyToOne
-    @JoinColumn(name = "NV_ID")
-    private NHANVIEN nhanvien;
+	@Column(name = "T_TEN")
+	@NotBlank(message = "Vui lòng nhập n=tên tour")
+	private String ten;
 
+	@Column(name = "T_ANH")
+	private String anh;
+
+	@ManyToOne
+	@NotNull(message = "Chưa chọn loại tour")
+	@JoinColumn(name = "LT_ID")
+	private LoaiTour loaiTour;
+
+	@ManyToOne
+	@JoinColumn(name = "NV_ID")
+	private NHANVIEN nhanvien;
+
+	@Valid
+	@Size(min = 1, message = "Ít nhất một thời gian khởi hanghf")
 	@OneToMany(mappedBy = "tour")
 	private List<ThoiGianKhoiHanh> thoiGianKhoiHanh2;
-	
+
+	@Valid
+	@Size(min = 1, message = "Ít nhất một chặn cho một tour")
 	@OneToMany(mappedBy = "tour")
 	private List<CHAN> chan;
-	
-	
-	
-//	
-//	public List<PhanHoi> getPhanHoi() {
-//		return phanHoi;
-//	}
-//
-//	public void setPhanHoi(List<PhanHoi> phanHoi) {
-//		this.phanHoi = phanHoi;
-//	}
 
-	
-	 
+	//
+	// public List<PhanHoi> getPhanHoi() {
+	// return phanHoi;
+	// }
+	//
+	// public void setPhanHoi(List<PhanHoi> phanHoi) {
+	// this.phanHoi = phanHoi;
+	// }
+
 	public List<CHAN> getChan() {
 		return chan;
 	}
@@ -164,6 +174,5 @@ public class Tour {
 	public void setTen(String ten) {
 		this.ten = ten;
 	}
-    
-    
+
 }

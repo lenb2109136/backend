@@ -14,27 +14,27 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "THOIGIANKHOIHANH")
 public class ThoiGianKhoiHanh {
 	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "TGKH_ID")
-    private int id;
-	
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "TGKH_ID")
+	private int id;
+
 	@Column(name = "TGKH_THOIGIAN")
 	private LocalDateTime thoiGian;
-	
+
 	@Column(name = "TGKH_GIA")
 	private float gia;
-	
+
+	@NotNull(message = "Chưa chọn nhân viên")
 	@ManyToOne
 	@JoinColumn(name = "NV_ID")
 	private NHANVIEN nhanVien;
-	
-	
-	
+
 	public NHANVIEN getNhanVien() {
 		return nhanVien;
 	}
@@ -43,17 +43,15 @@ public class ThoiGianKhoiHanh {
 		this.nhanVien = nhanVien;
 	}
 
-	//	@JsonIgnore
+	// @JsonIgnore
 	@OneToMany(mappedBy = "thoiGianKhoiHanhl")
 	private List<GiaUuDai> giaUuDai;
-	
+
 	@ManyToOne
 	@JsonIgnore
 	@JoinColumn(name = "T_ID")
 	private Tour tour;
-	
-	
-	
+
 	public List<GiaUuDai> getGiaUuDai() {
 		return giaUuDai;
 	}
@@ -93,7 +91,5 @@ public class ThoiGianKhoiHanh {
 	public void setGia(float gia) {
 		this.gia = gia;
 	}
-	
-	
 
 }

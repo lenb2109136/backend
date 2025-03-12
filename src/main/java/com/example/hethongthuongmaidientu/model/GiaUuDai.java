@@ -17,20 +17,19 @@ import jakarta.persistence.Table;
 @Table(name = "GIAUUDAI")
 public class GiaUuDai {
 	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "GUD_ID")
-    private int id;
-	
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "GUD_ID")
+	private int id;
+
 	@Column(name = "GUD_GIA")
 	private Float gia;
-	
+
 	@Column(name = "GUD_NGAPAPDUNG")
 	private LocalDateTime ngayGioApDung;
-	
+
 	@Column(name = "GUD_NGAYKETTHUC")
 	private LocalDateTime ngayKetThuc;
-	
-	
+
 	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "TGKH_ID")
@@ -75,7 +74,5 @@ public class GiaUuDai {
 	public void setThoiGianKhoiHanhl(ThoiGianKhoiHanh thoiGianKhoiHanhl) {
 		this.thoiGianKhoiHanhl = thoiGianKhoiHanhl;
 	}
-	
-	
-	
+
 }

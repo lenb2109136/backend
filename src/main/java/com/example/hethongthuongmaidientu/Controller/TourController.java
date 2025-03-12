@@ -1,12 +1,18 @@
 package com.example.hethongthuongmaidientu.Controller;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import javax.management.RuntimeErrorException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,117 +21,200 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.hethongthuongmaidientu.Service.TourService;
+import com.example.hethongthuongmaidientu.model.CHAN;
 import com.example.hethongthuongmaidientu.model.GiaUuDai;
 import com.example.hethongthuongmaidientu.model.Response;
+import com.example.hethongthuongmaidientu.model.ThoiGianKhoiHanh;
 import com.example.hethongthuongmaidientu.model.Tour;
+import com.example.hethongthuongmaidientu.repository.ChanRepository;
 import com.example.hethongthuongmaidientu.repository.GiaUuDaiRepository;
+import com.example.hethongthuongmaidientu.repository.ThoiGianKhoiHanhRepository;
 import com.example.hethongthuongmaidientu.repository.TourRepository;
+
+import jakarta.transaction.Transactional;
 
 @RestController
 @RequestMapping("/tour")
 public class TourController {
 	@Autowired
 	private TourService tourService;
-	
+
 	@Autowired
 	GiaUuDaiRepository giaUuDaiRepo;
-	
+
 	@Autowired
 	private TourRepository tourRepository;
+
+	@Autowired
+	ThoiGianKhoiHanhRepository thoiGianKhoiHanhRepo;
+
+	@Autowired
+	ChanRepository chanRepo;
+
+	public boolean checkDate(LocalDateTime date1, LocalDateTime date2) {
+		return date1.isBefore(date2) && date1.isAfter(LocalDateTime.now());
+	}
+
+	public boolean checkDateLocal(LocalDate date1, LocalDate date2) {
+		return date1.isBefore(date2) && date1.isAfter(LocalDate.now());
+	}
+
+	public boolean checkNhanVienTrungCa(Integer day, Integer index, List<ThoiGianKhoiHanh> thoiGianKhoiHanh,
+			LocalDateTime ngayBatDau, LocalDateTime ngayKetThuc, Integer nhanVienId) {
+		for (int i = 0; i < thoiGianKhoiHanh.size(); i++) {
+			ThoiGianKhoiHanh t = thoiGianKhoiHanh.get(i);
+			LocalDateTime ngayKetThucNow = t.getThoiGian().plusDays(day);
+			if (i != index) {
+				if ((ngayBatDau.isAfter(t.getThoiGian()) && ngayBatDau.isBefore(ngayKetThucNow)
+						&& t.getNhanVien().getId() == nhanVienId)
+						|| (ngayKetThuc.isAfter(t.getThoiGian()) && ngayKetThuc.isBefore(ngayKetThucNow)
+								&& t.getNhanVien().getId() == nhanVienId)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	@PostMapping("add")
+	@Transactional
+	public ResponseEntity<Object> addTour(@RequestBody Tour tour, BindingResult bindingRel) {
+		if (bindingRel.hasErrors()) {
+			String errorMessage = bindingRel.getFieldErrors().get(0).getDefaultMessage();
+			return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+		}
+		int p = 0;
+		for (ThoiGianKhoiHanh t : tour.getThoiGianKhoiHanh2()) {
+			if (t.getThoiGian().isBefore(LocalDateTime.now())) {
+				return new ResponseEntity<>("Thời gian khởi hành không hợp lệ", HttpStatus.BAD_REQUEST);
+			}
+			if (checkNhanVienTrungCa(tour.getSoNgay(), p, tour.getThoiGianKhoiHanh2(), t.getThoiGian(),
+					t.getThoiGian().plusDays(tour.getSoNgay()), t.getNhanVien().getId())) {
+				return new ResponseEntity<>("Nhân viên bị trùng lịch tour", HttpStatus.BAD_REQUEST);
+			}
+			t.setTour(tour);
+			for (GiaUuDai b : t.getGiaUuDai()) {
+
+				b.setThoiGianKhoiHanhl(t);
+				if (!checkDate(b.getNgayGioApDung(), b.getNgayKetThuc())) {
+					return new ResponseEntity<>("Thời gian ưu đãi không hợp lệ", HttpStatus.BAD_REQUEST);
+				}
+				if (b.getGia() < 0) {
+					return new ResponseEntity<>("Giá ưu đãi ko hợp lệ", HttpStatus.BAD_REQUEST);
+				}
+			}
+			p++;
+		}
+		for (CHAN c : tour.getChan()) {
+			c.setTour(tour);
+			if (!checkDateLocal(c.getNgayBatDau(), c.getNgayKetThuc())) {
+				return new ResponseEntity<>("Thời gian chặn không hợp lệ", HttpStatus.BAD_REQUEST);
+			}
+		}
+		tourRepository.save(tour);
+		thoiGianKhoiHanhRepo.saveAll(tour.getThoiGianKhoiHanh2());
+		tour.getThoiGianKhoiHanh2().forEach(v -> {
+			giaUuDaiRepo.saveAll(v.getGiaUuDai());
+		});
+		chanRepo.saveAll(tour.getChan());
+		return new ResponseEntity<>("Thêm thành công", HttpStatus.OK);
+	}
+
 	@GetMapping("/gethometour")
-	public ResponseEntity<Response> getHomeTour(){
-		
-		Response r= new Response();
+	public ResponseEntity<Response> getHomeTour() {
+
+		Response r = new Response();
 		r.setData(tourService.getHomeTour());
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
-		return new ResponseEntity<Response>(r,HttpStatus.OK);
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
+
 	@GetMapping("/getListTour")
-	public ResponseEntity<Response> getListTour(){
-		
-		Response r= new Response();
+	public ResponseEntity<Response> getListTour() {
+
+		Response r = new Response();
 		r.setData(tourService.getListTour());
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
-		return new ResponseEntity<Response>(r,HttpStatus.OK);
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/getListTourByLoai")
-	public ResponseEntity<Response> getListTourByLoai(@RequestParam("idloai") int id){
-		Response r= new Response();
+	public ResponseEntity<Response> getListTourByLoai(@RequestParam("idloai") int id) {
+		Response r = new Response();
 		r.setData(tourService.getListTour(id));
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
-		return new ResponseEntity<Response>(r,HttpStatus.OK);
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
+
 	@GetMapping("/getListTourfavourite")
-	public ResponseEntity<Response> getListTourfavourite(){
-		
-		Response r= new Response();
+	public ResponseEntity<Response> getListTourfavourite() {
+
+		Response r = new Response();
 		r.setData(tourService.getListTour());
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
-		return new ResponseEntity<Response>(r,HttpStatus.OK);
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/getinfortour")
 	public ResponseEntity<Response> getInforTour(@RequestParam("id") int id) {
-		
-		Response r= new Response();
+
+		Response r = new Response();
 		r.setData(tourService.getInforTour(id));
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
-		return new ResponseEntity<Response>(r,HttpStatus.OK);
-		
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
+
 	}
-	
+
 	@PostMapping("/getfilter")
-	public ResponseEntity<Response> getInforTour(@RequestBody Map<String,Object> map) {
-		Response r= new Response();
+	public ResponseEntity<Response> getInforTour(@RequestBody Map<String, Object> map) {
+		Response r = new Response();
 		r.setData(tourService.getByFilter(map));
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
-		return new ResponseEntity<Response>(r,HttpStatus.OK);
-		
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
+
 	}
-	
+
 	@GetMapping("/getAll")
-	public ResponseEntity<Response> getAllAtribute(){
-		Response r= new Response();
+	public ResponseEntity<Response> getAllAtribute() {
+		Response r = new Response();
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
-		return new ResponseEntity<Response>(r,HttpStatus.OK);
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/getadmintour")
-	public ResponseEntity<Response> getAllAdmin(){
-		Response r= new Response();
+	public ResponseEntity<Response> getAllAdmin() {
+		Response r = new Response();
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
 		r.setData(tourRepository.getadmintour());
-		return new ResponseEntity<Response>(r,HttpStatus.OK);
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
-	
+
 	@PostMapping("/uudai/update")
-	public ResponseEntity<Object> updateUuDaiTour(@RequestBody GiaUuDai giaUuDai){
+	public ResponseEntity<Object> updateUuDaiTour(@RequestBody GiaUuDai giaUuDai) {
 		System.out.println("dkcdhuichu");
-		 GiaUuDai g=giaUuDaiRepo.findById(giaUuDai.getId()).orElse(null);
-		 if(g!=null) {
-			 if(g.getNgayKetThuc().isAfter(LocalDateTime.now())){
-				 if(giaUuDai.getGia()>0&&giaUuDai.getNgayGioApDung().isBefore(giaUuDai.getNgayKetThuc())&&!g.getNgayKetThuc().isBefore(giaUuDai.getNgayKetThuc())) {
-					 giaUuDai.setThoiGianKhoiHanhl(g.getThoiGianKhoiHanhl());
-					 giaUuDaiRepo.save(giaUuDai);
-					 System.out.println("sdjcdhchidh");
-					 return new ResponseEntity<Object>("Cap nhat thanh cong",HttpStatus.OK);
-				 }
-				 return new ResponseEntity<Object>("Thời gian ko hợp lệkk",HttpStatus.BAD_REQUEST);
-			 }
-			 return new ResponseEntity<Object>(HttpStatus.BAD_REQUEST);
-		 }
+		GiaUuDai g = giaUuDaiRepo.findById(giaUuDai.getId()).orElse(null);
+		if (g != null) {
+			if (g.getNgayKetThuc().isAfter(LocalDateTime.now())) {
+				if (giaUuDai.getGia() > 0 && giaUuDai.getNgayGioApDung().isBefore(giaUuDai.getNgayKetThuc())
+						&& !g.getNgayKetThuc().isBefore(giaUuDai.getNgayKetThuc())) {
+					giaUuDai.setThoiGianKhoiHanhl(g.getThoiGianKhoiHanhl());
+					giaUuDaiRepo.save(giaUuDai);
+					System.out.println("sdjcdhchidh");
+					return new ResponseEntity<Object>("Cap nhat thanh cong", HttpStatus.OK);
+				}
+				return new ResponseEntity<Object>("Thời gian ko hợp lệkk", HttpStatus.BAD_REQUEST);
+			}
+			return new ResponseEntity<Object>(HttpStatus.BAD_REQUEST);
+		}
 		return new ResponseEntity<Object>(HttpStatus.BAD_REQUEST);
 	}
-	
-	
-	
+
 }
