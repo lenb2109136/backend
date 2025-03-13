@@ -32,6 +32,7 @@ import com.example.hethongthuongmaidientu.repository.ThoiGianKhoiHanhRepository;
 import com.example.hethongthuongmaidientu.repository.TourRepository;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/tour")
@@ -65,12 +66,34 @@ public class TourController {
 			ThoiGianKhoiHanh t = thoiGianKhoiHanh.get(i);
 			LocalDateTime ngayKetThucNow = t.getThoiGian().plusDays(day);
 			if (i != index) {
-				if ((ngayBatDau.isAfter(t.getThoiGian()) && ngayBatDau.isBefore(ngayKetThucNow)
-						&& t.getNhanVien().getId() == nhanVienId)
-						|| (ngayKetThuc.isAfter(t.getThoiGian()) && ngayKetThuc.isBefore(ngayKetThucNow)
-								&& t.getNhanVien().getId() == nhanVienId)) {
+				if ((!t.getThoiGian().isAfter(ngayBatDau) && !ngayKetThucNow.isBefore(ngayBatDau)) ||
+						!t.getThoiGian().isBefore(ngayBatDau) && !t.getThoiGian().isAfter(ngayKetThuc)) {
 					return false;
 				}
+
+			}
+		}
+		List<ThoiGianKhoiHanh> l = tourRepository.getThoiGianKhoiHanhByNhanVien(nhanVienId);
+		for (int i = 0; i < l.size(); i++) {
+			ThoiGianKhoiHanh t = l.get(i);
+			LocalDateTime ngayKetThucNow = t.getThoiGian().plusDays(day);
+			if ((!t.getThoiGian().isAfter(ngayBatDau) && !ngayKetThucNow.isBefore(ngayBatDau)) ||
+					!t.getThoiGian().isBefore(ngayBatDau) && !t.getThoiGian().isAfter(ngayKetThuc)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	public boolean checkTrungUuDai(List<GiaUuDai> giaUuDais, GiaUuDai g, int index) {
+		for (int i = 0; i < giaUuDais.size(); i++) {
+			GiaUuDai t = giaUuDais.get(i);
+			if (i != index && (!t.getNgayGioApDung().isAfter(g.getNgayGioApDung())
+					&& !t.getNgayKetThuc().isBefore(g.getNgayKetThuc())) ||
+					!t.getNgayGioApDung().isBefore(g.getNgayGioApDung())
+							&& !t.getNgayGioApDung().isAfter(g.getNgayKetThuc())) {
+				return false;
 			}
 		}
 		return true;
@@ -78,9 +101,10 @@ public class TourController {
 
 	@PostMapping("add")
 	@Transactional
-	public ResponseEntity<Object> addTour(@RequestBody Tour tour, BindingResult bindingRel) {
+	public ResponseEntity<Object> addTour(@Valid @RequestBody Tour tour, BindingResult bindingRel) {
 		if (bindingRel.hasErrors()) {
 			String errorMessage = bindingRel.getFieldErrors().get(0).getDefaultMessage();
+			System.out.println("có lỗ");
 			return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 		}
 		int p = 0;
@@ -88,13 +112,16 @@ public class TourController {
 			if (t.getThoiGian().isBefore(LocalDateTime.now())) {
 				return new ResponseEntity<>("Thời gian khởi hành không hợp lệ", HttpStatus.BAD_REQUEST);
 			}
-			if (checkNhanVienTrungCa(tour.getSoNgay(), p, tour.getThoiGianKhoiHanh2(), t.getThoiGian(),
+			if (!checkNhanVienTrungCa(tour.getSoNgay(), p, tour.getThoiGianKhoiHanh2(), t.getThoiGian(),
 					t.getThoiGian().plusDays(tour.getSoNgay()), t.getNhanVien().getId())) {
 				return new ResponseEntity<>("Nhân viên bị trùng lịch tour", HttpStatus.BAD_REQUEST);
 			}
 			t.setTour(tour);
+			int i = 0;
 			for (GiaUuDai b : t.getGiaUuDai()) {
-
+				if (!checkTrungUuDai(t.getGiaUuDai(), b, i)) {
+					return new ResponseEntity<>("Thời gian ưu đãi không được trùng", HttpStatus.BAD_REQUEST);
+				}
 				b.setThoiGianKhoiHanhl(t);
 				if (!checkDate(b.getNgayGioApDung(), b.getNgayKetThuc())) {
 					return new ResponseEntity<>("Thời gian ưu đãi không hợp lệ", HttpStatus.BAD_REQUEST);
@@ -102,6 +129,7 @@ public class TourController {
 				if (b.getGia() < 0) {
 					return new ResponseEntity<>("Giá ưu đãi ko hợp lệ", HttpStatus.BAD_REQUEST);
 				}
+				i++;
 			}
 			p++;
 		}
@@ -118,6 +146,12 @@ public class TourController {
 		});
 		chanRepo.saveAll(tour.getChan());
 		return new ResponseEntity<>("Thêm thành công", HttpStatus.OK);
+	}
+
+	@GetMapping("/getbyid")
+	public ResponseEntity<Object> getTourById(@RequestParam(name = "id", defaultValue = "-1") Integer id) {
+
+		return new ResponseEntity<Object>(tourRepository.findById(id).orElse(null), HttpStatus.OK);
 	}
 
 	@GetMapping("/gethometour")
