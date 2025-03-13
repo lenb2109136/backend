@@ -1,5 +1,7 @@
 package com.example.hethongthuongmaidientu.Controller;
 
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +43,17 @@ public class VeController {
 				.orElseThrow(() -> new EntityNotFoundException("Không tìm thấy vé của khách hàng"));
 		veRepository.delete(v);
 		Response r = new Response();
+		r.setStatus(HttpStatus.OK);
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
+	}
+
+	@PostMapping("/ls")
+	public ResponseEntity<Response> huyVe(@RequestParam("id") int id,
+			@RequestParam("bd") LocalDateTime bd,
+			@RequestParam("kt") LocalDateTime kt) {
+
+		Response r = new Response();
+		r.setData(veRepository.getve(id, bd, kt));
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}

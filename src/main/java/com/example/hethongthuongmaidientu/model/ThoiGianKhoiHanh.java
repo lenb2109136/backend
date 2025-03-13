@@ -22,7 +22,7 @@ public class ThoiGianKhoiHanh {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "TGKH_ID")
-	private int id;
+	private Integer id;
 
 	@Column(name = "TGKH_THOIGIAN")
 	private LocalDateTime thoiGian;
@@ -79,11 +79,11 @@ public class ThoiGianKhoiHanh {
 		this.tour = tour;
 	}
 
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 

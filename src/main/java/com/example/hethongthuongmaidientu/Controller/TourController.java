@@ -60,6 +60,16 @@ public class TourController {
 		return date1.isBefore(date2) && date1.isAfter(LocalDate.now());
 	}
 
+	@GetMapping("/getl")
+	public ResponseEntity<Response> getListTou(@RequestParam("id") int id) {
+
+		Response r = new Response();
+		r.setData(tourRepository.getalllis(id));
+		r.setMessage("OK");
+		r.setStatus(HttpStatus.OK);
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
+	}
+
 	public boolean checkNhanVienTrungCa(Integer day, Integer index, List<ThoiGianKhoiHanh> thoiGianKhoiHanh,
 			LocalDateTime ngayBatDau, LocalDateTime ngayKetThuc, Integer nhanVienId) {
 		for (int i = 0; i < thoiGianKhoiHanh.size(); i++) {
@@ -73,7 +83,8 @@ public class TourController {
 
 			}
 		}
-		List<ThoiGianKhoiHanh> l = tourRepository.getThoiGianKhoiHanhByNhanVien(nhanVienId);
+		List<ThoiGianKhoiHanh> l = tourRepository.getThoiGianKhoiHanhByNhanVien(nhanVienId,
+				thoiGianKhoiHanh.stream().filter(v -> v.getId() != null).toList());
 		for (int i = 0; i < l.size(); i++) {
 			ThoiGianKhoiHanh t = l.get(i);
 			LocalDateTime ngayKetThucNow = t.getThoiGian().plusDays(day);
@@ -97,6 +108,54 @@ public class TourController {
 			}
 		}
 		return true;
+	}
+
+	@Transactional
+	@PostMapping("/update")
+	public ResponseEntity<Object> update(@Valid @RequestBody Tour tour) {
+		System.out.println("CON CHO");
+		int p = 0;
+		for (ThoiGianKhoiHanh t : tour.getThoiGianKhoiHanh2()) {
+			if (t.getThoiGian().isBefore(LocalDateTime.now())) {
+				return new ResponseEntity<>("Thời gian khởi hành không hợp lệ", HttpStatus.BAD_REQUEST);
+			}
+			if (!checkNhanVienTrungCa(tour.getSoNgay(), p, tour.getThoiGianKhoiHanh2(), t.getThoiGian(),
+					t.getThoiGian().plusDays(tour.getSoNgay()), t.getNhanVien().getId())) {
+				return new ResponseEntity<>("Nhân viên bị trùng lịch tour", HttpStatus.BAD_REQUEST);
+			}
+			t.setTour(tour);
+			int i = 0;
+			for (GiaUuDai b : t.getGiaUuDai()) {
+				if (!checkTrungUuDai(t.getGiaUuDai(), b, i)) {
+					return new ResponseEntity<>("Thời gian ưu đãi không được trùng", HttpStatus.BAD_REQUEST);
+				}
+				b.setThoiGianKhoiHanhl(t);
+				if (!checkDate(b.getNgayGioApDung(), b.getNgayKetThuc())) {
+					return new ResponseEntity<>("Thời gian ưu đãi không hợp lệ", HttpStatus.BAD_REQUEST);
+				}
+				if (b.getGia() < 0) {
+					return new ResponseEntity<>("Giá ưu đãi ko hợp lệ", HttpStatus.BAD_REQUEST);
+				}
+				i++;
+			}
+			p++;
+		}
+		System.out.println("HELLO WOLD");
+		for (CHAN c : tour.getChan()) {
+			c.setTour(tour);
+			if (!checkDateLocal(c.getNgayBatDau(), c.getNgayKetThuc())) {
+				return new ResponseEntity<>("Thời gian chặn không hợp lệ", HttpStatus.BAD_REQUEST);
+			}
+		}
+		tourRepository.save(tour);
+		thoiGianKhoiHanhRepo.saveAll(tour.getThoiGianKhoiHanh2());
+		tour.getThoiGianKhoiHanh2().forEach(v -> {
+			giaUuDaiRepo.saveAll(v.getGiaUuDai());
+		});
+		chanRepo.saveAll(tour.getChan());
+		tourRepository.deleteThoiGianKhoiHanhNotInList(tour.getThoiGianKhoiHanh2(), tour);
+		tourRepository.deleteChanNotInList(tour.getChan(), tour);
+		return new ResponseEntity<>("Thêm thành công", HttpStatus.OK);
 	}
 
 	@PostMapping("add")
