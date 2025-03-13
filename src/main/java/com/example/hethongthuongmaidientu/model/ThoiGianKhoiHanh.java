@@ -43,6 +43,17 @@ public class ThoiGianKhoiHanh {
 		this.nhanVien = nhanVien;
 	}
 
+	@OneToMany(mappedBy = "thoiGianKhoiHanh")
+	private List<VE> ve;
+
+	public List<VE> getVe() {
+		return ve;
+	}
+
+	public void setVe(List<VE> ve) {
+		this.ve = ve;
+	}
+
 	// @JsonIgnore
 	@OneToMany(mappedBy = "thoiGianKhoiHanhl")
 	private List<GiaUuDai> giaUuDai;

@@ -1,5 +1,7 @@
 package com.example.hethongthuongmaidientu.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,22 +15,21 @@ import jakarta.persistence.Table;
 @Table(name = "PHIDICHVU")
 public class PhiDichVu {
 	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "PDV_ID")
-    private int id;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "PDV_ID")
+	private int id;
 
-    @Column(name = "PDV_GIA")
-    private Float gia;
-    
-    @ManyToOne
-    @JoinColumn(name = "DV_ID")
-    private DichVu dichVu;
-    
-    @ManyToOne
-    @JoinColumn(name = "V_ID")
-    private VE ve;
-    
-    
+	@Column(name = "PDV_GIA")
+	private Float gia;
+
+	@ManyToOne
+	@JoinColumn(name = "DV_ID")
+	private DichVu dichVu;
+
+	@JsonIgnore
+	@ManyToOne
+	@JoinColumn(name = "V_ID")
+	private VE ve;
 
 	public DichVu getDichVu() {
 		return dichVu;
@@ -61,6 +62,5 @@ public class PhiDichVu {
 	public void setGia(float gia) {
 		this.gia = gia;
 	}
-    
-    
+
 }

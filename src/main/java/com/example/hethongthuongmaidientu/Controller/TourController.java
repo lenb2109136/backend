@@ -231,24 +231,52 @@ public class TourController {
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
 
+	// @PostMapping("/uudai/update")
+	// public ResponseEntity<Object> updateUuDaiTour(@RequestBody GiaUuDai giaUuDai)
+	// {
+	// System.out.println("dkcdhuichu");
+	// GiaUuDai g = giaUuDaiRepo.findById(giaUuDai.getId()).orElse(null);
+	// if (g != null) {
+	// if (g.getNgayKetThuc().isAfter(LocalDateTime.now())) {
+	// if (giaUuDai.getGia() > 0 &&
+	// giaUuDai.getNgayGioApDung().isBefore(giaUuDai.getNgayKetThuc())
+	// && !g.getNgayKetThuc().isBefore(giaUuDai.getNgayKetThuc())) {
+	// giaUuDai.setThoiGianKhoiHanhl(g.getThoiGianKhoiHanhl());
+	// giaUuDaiRepo.save(giaUuDai);
+	// System.out.println("sdjcdhchidh");
+	// return new ResponseEntity<Object>("Cap nhat thanh cong", HttpStatus.OK);
+	// }
+	// return new ResponseEntity<Object>("Thời gian ko hợp lệkk",
+	// HttpStatus.BAD_REQUEST);
+	// }
+	// return new ResponseEntity<Object>(HttpStatus.BAD_REQUEST);
+	// }
+	// return new ResponseEntity<Object>(HttpStatus.BAD_REQUEST);
+	// }
+
 	@PostMapping("/uudai/update")
-	public ResponseEntity<Object> updateUuDaiTour(@RequestBody GiaUuDai giaUuDai) {
+	public ResponseEntity<Response> updateUuDaiTour(@RequestBody GiaUuDai giaUuDai) throws Exception {
 		System.out.println("dkcdhuichu");
 		GiaUuDai g = giaUuDaiRepo.findById(giaUuDai.getId()).orElse(null);
-		if (g != null) {
-			if (g.getNgayKetThuc().isAfter(LocalDateTime.now())) {
-				if (giaUuDai.getGia() > 0 && giaUuDai.getNgayGioApDung().isBefore(giaUuDai.getNgayKetThuc())
-						&& !g.getNgayKetThuc().isBefore(giaUuDai.getNgayKetThuc())) {
-					giaUuDai.setThoiGianKhoiHanhl(g.getThoiGianKhoiHanhl());
-					giaUuDaiRepo.save(giaUuDai);
-					System.out.println("sdjcdhchidh");
-					return new ResponseEntity<Object>("Cap nhat thanh cong", HttpStatus.OK);
-				}
-				return new ResponseEntity<Object>("Thời gian ko hợp lệkk", HttpStatus.BAD_REQUEST);
-			}
-			return new ResponseEntity<Object>(HttpStatus.BAD_REQUEST);
+
+		if (giaUuDai.getNgayKetThuc().isAfter(g.getThoiGianKhoiHanhl().getThoiGian())) {
+			throw new Exception("Thời gian ưu đãi phải nhỏ hơn ngày khởi hành");
 		}
-		return new ResponseEntity<Object>(HttpStatus.BAD_REQUEST);
+		if (giaUuDai.getNgayKetThuc().isAfter(LocalDateTime.now())) {
+			g.setNgayKetThuc(giaUuDai.getNgayKetThuc());
+		}
+
+		else {
+			throw new Exception("Ngày kết thúc phải sau thời điểm hiện tại");
+		}
+		System.out.println(g.getThoiGianKhoiHanhl().getGiaUuDai().size());
+		if (Math.round(giaUuDai.getGia()) != Math.round(g.getGia()) && g.getThoiGianKhoiHanhl().getVe().size() != 0) {
+			throw new Exception("Giá không thể thay đổi do đã được sử dụng");
+		} else {
+			g.setGia(giaUuDai.getGia());
+		}
+		giaUuDaiRepo.save(g);
+		return new ResponseEntity<Response>(new Response(HttpStatus.OK, "ok", null), HttpStatus.OK);
 	}
 
 }

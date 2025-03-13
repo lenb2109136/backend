@@ -10,68 +10,65 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "DICHVU")
 public class DichVu {
-	 	@Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    @Column(name = "DV_ID")
-	    private int id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "DV_ID")
+	private int id;
 
-	    @Column(name = "DV_TEN")
-	    private String ten;
-	    
-	    @Column	(name = "DV_MOTA")
-	    private String moTa;
-	    
-	    @Column(name = "DV_GIA")
-	    private Float gia;
-	    
-	    @Column(name = "DV_ANH")
-	    private String anh;
-	    
-	    
+	@Column(name = "DV_TEN")
+	private String ten;
 
-		public String getAnh() {
-			return anh;
-		}
+	@Column(name = "DV_MOTA")
+	private String moTa;
 
-		public void setAnh(String anh) {
-			this.anh = anh;
-		}
+	@Column(name = "DV_GIA")
+	private Float gia;
 
-		public void setGia(Float gia) {
-			this.gia = gia;
-		}
+	@Column(name = "DV_ANH")
+	private String anh;
 
-		public int getId() {
-			return id;
-		}
+	public String getAnh() {
+		return anh;
+	}
 
-		public void setId(int id) {
-			this.id = id;
-		}
+	public void setAnh(String anh) {
+		this.anh = anh;
+	}
 
-		public String getTen() {
-			return ten;
-		}
+	public void setGia(Float gia) {
+		this.gia = gia;
+	}
 
-		public void setTen(String ten) {
-			this.ten = ten;
-		}
+	public int getId() {
+		return id;
+	}
 
-		public String getMoTa() {
-			return moTa;
-		}
+	public void setId(int id) {
+		this.id = id;
+	}
 
-		public void setMoTa(String moTa) {
-			this.moTa = moTa;
-		}
+	public String getTen() {
+		return ten;
+	}
 
-		public float getGia() {
-			return gia;
-		}
+	public void setTen(String ten) {
+		this.ten = ten;
+	}
 
-		public void setGia(float gia) {
-			this.gia = gia;
-		}
-	    
-	    
+	public String getMoTa() {
+		return moTa;
+	}
+
+	public void setMoTa(String moTa) {
+		this.moTa = moTa;
+	}
+
+	public float getGia() {
+		return gia;
+	}
+
+	public void setGia(float gia) {
+		this.gia = gia;
+	}
+
 }
