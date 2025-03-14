@@ -87,4 +87,9 @@ public interface TourRepository extends JpaRepository<Tour, Integer> {
 	@Modifying
 	@Query("delete from CHAN p where p not in:l and p.tour=:tour")
 	public void deleteChanNotInList(@Param("l") List<CHAN> l, @Param("tour") Tour tour);
+	
+	@Query(value = "SELECT t.* FROM tour t JOIN loaitour l ON t.LT_ID = l.LT_ID WHERE t.T_TEN LIKE CONCAT('%', :ten, '%') AND l.LT_ID = :idloai", nativeQuery = true)
+	public List<Tour> getListTourr(String ten,int idloai );
+
+
 }

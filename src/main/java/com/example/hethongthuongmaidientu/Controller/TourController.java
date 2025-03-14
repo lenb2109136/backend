@@ -312,7 +312,13 @@ public class TourController {
 	// }
 	// return new ResponseEntity<Object>(HttpStatus.BAD_REQUEST);
 	// }
+	
+	@PostMapping("/getten")
 
+	public ResponseEntity<Response> getten(@RequestParam("ten") String ten, @RequestParam("id") int idloai){
+		return new ResponseEntity<Response>
+		(new Response(HttpStatus.OK,"ok",tourRepository.getListTourr(ten,idloai)), HttpStatus.OK);
+	}
 	@PostMapping("/uudai/update")
 	public ResponseEntity<Response> updateUuDaiTour(@RequestBody GiaUuDai giaUuDai) throws Exception {
 		System.out.println("dkcdhuichu");
