@@ -18,4 +18,12 @@ public interface VeRepository extends JpaRepository<VE, Integer> {
             int id,
             LocalDateTime nbt,
             LocalDateTime kt);
+    
+    @Query(value = "SELECT v.* \r\n"
+    		+ "FROM ve v \r\n"
+    		+ "JOIN thoigiankhoihanh t ON v.TGKH_ID = t.TGKH_ID \r\n"
+    		+ "JOIN tour tt ON tt.T_ID = t.T_ID \r\n"
+    		+ "WHERE t.TGKH_THOIGIAN > NOW() AND t.T_ID=:id",nativeQuery =true)
+    public List<VE> gettrung();
+    
 }

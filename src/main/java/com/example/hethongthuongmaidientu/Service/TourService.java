@@ -10,6 +10,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.hethongthuongmaidientu.model.ThoiGianKhoiHanh;
 import com.example.hethongthuongmaidientu.model.Tour;
 import com.example.hethongthuongmaidientu.repository.TourRepository;
 
@@ -105,5 +106,18 @@ public class TourService {
 		}
 		return l2;
 
+	}
+	public boolean kiemtracon(int id) {
+	    Tour t = tourRepository.findById(id)
+	            .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy tour"));
+
+	    for (ThoiGianKhoiHanh data : t.getThoiGianKhoiHanh2()) {
+	        if (data.getThoiGian().isAfter(LocalDateTime.now().plusHours(6)) 
+	                && data.getVe().size() < t.getSoNguoiThamGia()) {
+	            return true;
+	        }
+	    }
+	    
+	    return false; 
 	}
 }

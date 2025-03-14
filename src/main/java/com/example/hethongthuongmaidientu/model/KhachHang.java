@@ -17,6 +17,7 @@ import jakarta.validation.constraints.Pattern;
 @Entity
 @Table(name = "KHACHHANG")
 public class KhachHang {
+	public static int idkh=1;
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "KH_ID")

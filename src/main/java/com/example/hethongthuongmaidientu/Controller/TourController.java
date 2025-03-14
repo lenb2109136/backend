@@ -59,7 +59,7 @@ public class TourController {
 	public boolean checkDateLocal(LocalDate date1, LocalDate date2) {
 		return date1.isBefore(date2) && date1.isAfter(LocalDate.now());
 	}
-
+//chưa check
 	@GetMapping("/getl")
 	public ResponseEntity<Response> getListTou(@RequestParam("id") int id) {
 
@@ -213,35 +213,56 @@ public class TourController {
 		return new ResponseEntity<Object>(tourRepository.findById(id).orElse(null), HttpStatus.OK);
 	}
 
+	
+	//ĐÃ CHECK ĐIỀU KIỆN
 	@GetMapping("/gethometour")
 	public ResponseEntity<Response> getHomeTour() {
-
+		List<Map<Object, Object>> mapList = tourService.getHomeTour();
+		mapList.removeIf(map -> {
+			System.out.println(tourService.kiemtracon((Integer) map.get("T_ID")));
+			return !tourService.kiemtracon((Integer) map.get("T_ID"));
+		});
 		Response r = new Response();
-		r.setData(tourService.getHomeTour());
+		r.setData(mapList);
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
 
+	
+	//ĐÃ CHECK ĐIỀU KIỆN ĐẦY ĐỦ
 	@GetMapping("/getListTour")
 	public ResponseEntity<Response> getListTour() {
-
+		List<Map<Object, Object>> mapList = tourService.getListTour();
+		mapList.removeIf(map -> {
+			System.out.println(tourService.kiemtracon((Integer) map.get("T_ID")));
+			return !tourService.kiemtracon((Integer) map.get("T_ID"));
+		});
 		Response r = new Response();
-		r.setData(tourService.getListTour());
+		r.setData(mapList);
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
 
+	
+	//ĐÃ CHECK ĐIỀU KIỆN
 	@GetMapping("/getListTourByLoai")
 	public ResponseEntity<Response> getListTourByLoai(@RequestParam("idloai") int id) {
+		List<Map<Object, Object>> mapList = tourService.getListTour(id);
+		mapList.removeIf(map -> {
+			System.out.println(tourService.kiemtracon((Integer) map.get("T_ID")));
+			return !tourService.kiemtracon((Integer) map.get("T_ID"));
+		});
 		Response r = new Response();
-		r.setData(tourService.getListTour(id));
+		r.setData(mapList);
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
 
+	
+	//CHƯA CHECK----------------------------------------------------------------------------
 	@GetMapping("/getListTourfavourite")
 	public ResponseEntity<Response> getListTourfavourite() {
 
@@ -251,42 +272,61 @@ public class TourController {
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
-
+	//ĐÃ CHECK
 	@GetMapping("/getinfortour")
 	public ResponseEntity<Response> getInforTour(@RequestParam("id") int id) {
-
+			Tour t=tourService.getInforTour(id);
+			t.getThoiGianKhoiHanh2().removeIf((data)->{
+				System.out.println(data.getThoiGian().isAfter(LocalDateTime.now().plusHours(6)));
+				System.out.println(data.getVe().size()<t.getSoNguoiThamGia());
+				if(data.getThoiGian().isAfter(LocalDateTime.now().plusHours(6))&&data.getVe().size()<t.getSoNguoiThamGia()) {
+					return false;
+				}
+				else {
+					return true;
+				}
+			});
 		Response r = new Response();
-		r.setData(tourService.getInforTour(id));
+		r.setData(t);
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 
 	}
-
+	//ĐÃ CHECK
 	@PostMapping("/getfilter")
 	public ResponseEntity<Response> getInforTour(@RequestBody Map<String, Object> map) {
+		List<Map<Object, Object>> mapList = tourService.getByFilter(map);
+		mapList.removeIf(mapT -> {
+			return !tourService.kiemtracon((Integer) mapT.get("T_ID"));
+		});
 		Response r = new Response();
-		r.setData(tourService.getByFilter(map));
+		r.setData(mapList);
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 
 	}
 
-	@GetMapping("/getAll")
-	public ResponseEntity<Response> getAllAtribute() {
-		Response r = new Response();
-		r.setMessage("OK");
-		r.setStatus(HttpStatus.OK);
-		return new ResponseEntity<Response>(r, HttpStatus.OK);
-	}
+//	@GetMapping("/getAll")
+//	public ResponseEntity<Response> getAllAtribute() {
+//		Response r = new Response();
+//		r.setMessage("OK");
+//		r.setStatus(HttpStatus.OK);
+//		return new ResponseEntity<Response>(r, HttpStatus.OK);
+//	}
 
+	//ĐÃ CHECK CÒN HÀNG
 	@GetMapping("/getadmintour")
 	public ResponseEntity<Response> getAllAdmin() {
+		List<Tour> t= tourRepository.getadmintour();
+		t.removeIf(data-> {
+			return tourService.kiemtracon(data.getId());
+		});
 		Response r = new Response();
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
-		r.setData(tourRepository.getadmintour());
+		r.setData(t);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
 
@@ -342,6 +382,11 @@ public class TourController {
 		}
 		giaUuDaiRepo.save(g);
 		return new ResponseEntity<Response>(new Response(HttpStatus.OK, "ok", null), HttpStatus.OK);
+	}
+	
+	@GetMapping("/gettags")
+	public ResponseEntity<Response> gettags(){
+		return  new ResponseEntity<Response>(new Response(HttpStatus.OK,"ok",tourRepository.getTags()),HttpStatus.OK);
 	}
 
 }

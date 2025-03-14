@@ -50,7 +50,12 @@ public class Tour {
 
 	@Column(name = "T_ANH")
 	private String anh;
-
+	
+	@Column(name = "T_TAGS")
+	private String tags;
+	
+	
+	
 	@ManyToOne
 	@NotNull(message = "Chưa chọn loại tour")
 	@JoinColumn(name = "LT_ID")
@@ -78,9 +83,20 @@ public class Tour {
 	// public void setPhanHoi(List<PhanHoi> phanHoi) {
 	// this.phanHoi = phanHoi;
 	// }
+	
+	
+	
 
 	public List<CHAN> getChan() {
 		return chan;
+	}
+
+	public String getTags() {
+		return tags;
+	}
+
+	public void setTags(String tags) {
+		this.tags = tags;
 	}
 
 	public List<ThoiGianKhoiHanh> getThoiGianKhoiHanh2() {

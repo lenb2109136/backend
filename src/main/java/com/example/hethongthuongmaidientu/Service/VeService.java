@@ -47,7 +47,7 @@ public class VeService {
 				.orElseThrow(() -> new EntityNotFoundException("Không tìm thấy khách hàng cần đặt"));
 			t.getInfove().forEach(data -> {
 			ThoiGianKhoiHanh tt = thoiGianKhoiHanhRepository.findById(data.getIdtgkh())
-				.orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thời gian khởi hành phù hợp"));
+				.orElseThrow(() -> new EntityNotFoundException("Vui lòng chọn thời gian khởi hành cho tour"));
 
 			VE v = new VE();
 			v.setKhachHang(kh);
