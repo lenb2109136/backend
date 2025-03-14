@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.hethongthuongmaidientu.Service.ThoiGianKhoiHanhService;
 import com.example.hethongthuongmaidientu.Service.TourService;
 import com.example.hethongthuongmaidientu.model.CHAN;
 import com.example.hethongthuongmaidientu.model.GiaUuDai;
@@ -51,6 +52,12 @@ public class TourController {
 
 	@Autowired
 	ChanRepository chanRepo;
+	
+	@Autowired
+	private ThoiGianKhoiHanhService thoiGianKhoiHanhService;
+	
+	@Autowired
+	private ThoiGianKhoiHanhRepository thoiGianKhoiHanhRepository;
 
 	public boolean checkDate(LocalDateTime date1, LocalDateTime date2) {
 		return date1.isBefore(date2) && date1.isAfter(LocalDateTime.now());
@@ -59,7 +66,7 @@ public class TourController {
 	public boolean checkDateLocal(LocalDate date1, LocalDate date2) {
 		return date1.isBefore(date2) && date1.isAfter(LocalDate.now());
 	}
-//chưa check
+		//chưa check
 	@GetMapping("/getl")
 	public ResponseEntity<Response> getListTou(@RequestParam("id") int id) {
 
@@ -112,8 +119,8 @@ public class TourController {
 
 	@Transactional
 	@PostMapping("/update")
+	
 	public ResponseEntity<Object> update(@Valid @RequestBody Tour tour) {
-		System.out.println("CON CHO");
 		int p = 0;
 		for (ThoiGianKhoiHanh t : tour.getThoiGianKhoiHanh2()) {
 			if (t.getThoiGian().isBefore(LocalDateTime.now())) {
@@ -140,7 +147,6 @@ public class TourController {
 			}
 			p++;
 		}
-		System.out.println("HELLO WOLD");
 		for (CHAN c : tour.getChan()) {
 			c.setTour(tour);
 			if (!checkDateLocal(c.getNgayBatDau(), c.getNgayKetThuc())) {
@@ -214,13 +220,16 @@ public class TourController {
 	}
 
 	
-	//ĐÃ CHECK ĐIỀU KIỆN
+	//ĐÃ CHECK ĐIỀU KIỆN-2
 	@GetMapping("/gethometour")
-	public ResponseEntity<Response> getHomeTour() {
+	public ResponseEntity<Response> getHomeTour(@RequestParam("sdt") String sdt) {
 		List<Map<Object, Object>> mapList = tourService.getHomeTour();
 		mapList.removeIf(map -> {
-			System.out.println(tourService.kiemtracon((Integer) map.get("T_ID")));
-			return !tourService.kiemtracon((Integer) map.get("T_ID"));
+			if(thoiGianKhoiHanhService.loctour((Integer)map.get("T_ID"), sdt)==false
+					|| tourService.kiemtracon((Integer) map.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
 		});
 		Response r = new Response();
 		r.setData(mapList);
@@ -230,13 +239,16 @@ public class TourController {
 	}
 
 	
-	//ĐÃ CHECK ĐIỀU KIỆN ĐẦY ĐỦ
+	//ĐÃ CHECK ĐIỀU KIỆN ĐẦY ĐỦ -2
 	@GetMapping("/getListTour")
-	public ResponseEntity<Response> getListTour() {
+	public ResponseEntity<Response> getListTour(@RequestParam("sdt") String sdt) {
 		List<Map<Object, Object>> mapList = tourService.getListTour();
 		mapList.removeIf(map -> {
-			System.out.println(tourService.kiemtracon((Integer) map.get("T_ID")));
-			return !tourService.kiemtracon((Integer) map.get("T_ID"));
+			if(thoiGianKhoiHanhService.loctour((Integer)map.get("T_ID"), sdt)==false
+					|| tourService.kiemtracon((Integer) map.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
 		});
 		Response r = new Response();
 		r.setData(mapList);
@@ -246,13 +258,16 @@ public class TourController {
 	}
 
 	
-	//ĐÃ CHECK ĐIỀU KIỆN
+	//ĐÃ CHECK ĐIỀU KIỆN-2
 	@GetMapping("/getListTourByLoai")
-	public ResponseEntity<Response> getListTourByLoai(@RequestParam("idloai") int id) {
+	public ResponseEntity<Response> getListTourByLoai(@RequestParam("idloai") int id,@RequestParam("sdt") String sdt) {
 		List<Map<Object, Object>> mapList = tourService.getListTour(id);
 		mapList.removeIf(map -> {
-			System.out.println(tourService.kiemtracon((Integer) map.get("T_ID")));
-			return !tourService.kiemtracon((Integer) map.get("T_ID"));
+			if(thoiGianKhoiHanhService.loctour((Integer)map.get("T_ID"), sdt)==false
+					|| tourService.kiemtracon((Integer) map.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
 		});
 		Response r = new Response();
 		r.setData(mapList);
@@ -272,20 +287,20 @@ public class TourController {
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
-	//ĐÃ CHECK
+	//ĐÃ CHECK-2
 	@GetMapping("/getinfortour")
-	public ResponseEntity<Response> getInforTour(@RequestParam("id") int id) {
+	public ResponseEntity<Response> getInforTour(@RequestParam("id") int id, @RequestParam(name = "idnv",required = false) String idnv) {
 			Tour t=tourService.getInforTour(id);
 			t.getThoiGianKhoiHanh2().removeIf((data)->{
-				System.out.println(data.getThoiGian().isAfter(LocalDateTime.now().plusHours(6)));
-				System.out.println(data.getVe().size()<t.getSoNguoiThamGia());
-				if(data.getThoiGian().isAfter(LocalDateTime.now().plusHours(6))&&data.getVe().size()<t.getSoNguoiThamGia()) {
+				System.out.println("-----------------");
+				System.out.println(thoiGianKhoiHanhService.kiemtratrung(data,idnv ));
+				if(data.getThoiGian().isAfter(LocalDateTime.now().plusHours(6))&&data.getVe().size()<t.getSoNguoiThamGia()
+					&&thoiGianKhoiHanhService.kiemtratrung(data,idnv )) {
 					return false;
 				}
-				else {
-					return true;
-				}
+				return true;
 			});
+			
 		Response r = new Response();
 		r.setData(t);
 		r.setMessage("OK");
@@ -293,12 +308,17 @@ public class TourController {
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 
 	}
-	//ĐÃ CHECK
+	//ĐÃ CHECK-2
 	@PostMapping("/getfilter")
 	public ResponseEntity<Response> getInforTour(@RequestBody Map<String, Object> map) {
+		System.out.println((String) map.get("sdt"));
 		List<Map<Object, Object>> mapList = tourService.getByFilter(map);
 		mapList.removeIf(mapT -> {
-			return !tourService.kiemtracon((Integer) mapT.get("T_ID"));
+			if(thoiGianKhoiHanhService.loctour((Integer)mapT.get("T_ID"), (String) map.get("sdt"))==false
+					|| tourService.kiemtracon((Integer) mapT.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
 		});
 		Response r = new Response();
 		r.setData(mapList);
