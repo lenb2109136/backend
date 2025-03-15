@@ -45,7 +45,7 @@ public class Tour {
 	private String moTa;
 
 	@Column(name = "T_TEN")
-	@NotBlank(message = "Vui lòng nhập n=tên tour")
+	@NotBlank(message = "Vui lòng nhập tên tour")
 	private String ten;
 
 	@Column(name = "T_ANH")

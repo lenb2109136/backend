@@ -2,9 +2,13 @@ package com.example.hethongthuongmaidientu.Controller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.management.RuntimeErrorException;
 
@@ -116,101 +120,164 @@ public class TourController {
 		}
 		return true;
 	}
+	public boolean checkTrungUuDai2(List<GiaUuDai> giaUuDais, LocalDateTime t) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
+        for (int i = 0; i < giaUuDais.size(); i++) {
+            GiaUuDai g1 = giaUuDais.get(i);
+            for (int j = i + 1; j < giaUuDais.size(); j++) {
+                GiaUuDai g2 = giaUuDais.get(j);
+
+                if (!(g1.getNgayKetThuc().isBefore(g2.getNgayGioApDung()) || 
+                      g2.getNgayKetThuc().isBefore(g1.getNgayGioApDung()))) {
+                    throw new IllegalArgumentException(
+                        "Thời gian ưu đãi bị trùng tại ngày " + g1.getNgayGioApDung().format(formatter)
+                    );
+                }
+            }
+
+            if (!t.isBefore(g1.getNgayGioApDung())&& !t.isAfter(g1.getNgayKetThuc())) {
+                throw new IllegalArgumentException("Thời gian ưu đãi thứ : "+(i+1)+" không phù hợp với ngày khởi hành "+t.format(formatter));
+            }
+        }
+
+        return true; 
+    }
+	public void validateChans(List<CHAN> chans, int totalDays) throws Exception {
+	    if (chans == null || chans.isEmpty()) {
+	        throw new IllegalArgumentException("Danh sách chặn không được rỗng.");
+	    }
+
+	    chans.sort(Comparator.comparingInt(CHAN::getNgayBatDau));
+	    Set<Integer> coveredDays = new HashSet<>();
+	    int prevEnd = 0; 
+
+	    for (int i = 0; i < chans.size(); i++) {
+	        CHAN chan = chans.get(i);
+	        if (chan.getMoTa() == null || chan.getMoTa().length() == 0) {
+	            throw new Exception("Mô tả chặn thứ " + (i + 1) + " không được để trống.");
+	        }
+
+	        int start = chan.getNgayBatDau();
+	        int end = chan.getNgayKetThuc();
+
+	        if (start > end) {
+	            throw new IllegalArgumentException("Chặn thứ " + (i + 1) + " có ngày bắt đầu lớn hơn ngày kết thúc.");
+	        }
+
+	        if (end > totalDays) {
+	            throw new IllegalArgumentException("Chặn thứ " + (i + 1) + " bị vượt số ngày của tour.");
+	        }
+
+	        if (start > prevEnd + 1) {
+	            throw new IllegalArgumentException("Chặn thứ " + (i + 1) + " bị thiếu ngày từ " + (prevEnd + 1) + " đến " + (start - 1));
+	        }
+
+	        for (int j = start; j <= end; j++) {
+	            if (!coveredDays.add(j)) {
+	                throw new IllegalArgumentException("Chặn thứ " + (i + 1) + " có ngày trùng với chặn khác.");
+	            }
+	        }
+
+	        prevEnd = end;
+	    }
+
+	    for (int day = 1; day <= totalDays; day++) {
+	        if (!coveredDays.contains(day)) {
+	            throw new IllegalArgumentException("Chặn bị thiếu ngày thứ " + day);
+	        }
+	    }
+	}
 
 	@Transactional
 	@PostMapping("/update")
 	
-	public ResponseEntity<Object> update(@Valid @RequestBody Tour tour) {
+	public ResponseEntity<Object> update(@Valid @RequestBody Tour tour,BindingResult bindingRel) throws Exception {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+		if (bindingRel.hasErrors()) {
+			String errorMessage = bindingRel.getFieldErrors().get(0).getDefaultMessage();
+			return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+		}
 		int p = 0;
+		if(tour.getMoTa()==null||tour.getMoTa().length()==0) {
+			throw new Exception("Vui lòng cung cấp thông tin mô tả cho tour");
+		}
 		for (ThoiGianKhoiHanh t : tour.getThoiGianKhoiHanh2()) {
 			if (t.getThoiGian().isBefore(LocalDateTime.now())) {
 				return new ResponseEntity<>("Thời gian khởi hành không hợp lệ", HttpStatus.BAD_REQUEST);
 			}
 			if (!checkNhanVienTrungCa(tour.getSoNgay(), p, tour.getThoiGianKhoiHanh2(), t.getThoiGian(),
 					t.getThoiGian().plusDays(tour.getSoNgay()), t.getNhanVien().getId())) {
-				return new ResponseEntity<>("Nhân viên bị trùng lịch tour", HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST,"Nhân viên "+t.getNhanVien().getTen()+" đã có lịch hướng dẫn trùng", null), HttpStatus.OK);
 			}
 			t.setTour(tour);
 			int i = 0;
-			for (GiaUuDai b : t.getGiaUuDai()) {
-				if (!checkTrungUuDai(t.getGiaUuDai(), b, i)) {
-					return new ResponseEntity<>("Thời gian ưu đãi không được trùng", HttpStatus.BAD_REQUEST);
+			checkTrungUuDai2(t.getGiaUuDai(),t.getThoiGian());
+			for(int f=0;f<t.getGiaUuDai().size();f++) {
+				if(t.getGiaUuDai().get(f).getGia()>=t.getGia()) {
+					throw new Exception("Giá ưu đãi thứ: "+(f+1)+ " của thời gian khởi hành: "+t.getThoiGian().format(formatter));
 				}
-				b.setThoiGianKhoiHanhl(t);
-				if (!checkDate(b.getNgayGioApDung(), b.getNgayKetThuc())) {
-					return new ResponseEntity<>("Thời gian ưu đãi không hợp lệ", HttpStatus.BAD_REQUEST);
-				}
-				if (b.getGia() < 0) {
-					return new ResponseEntity<>("Giá ưu đãi ko hợp lệ", HttpStatus.BAD_REQUEST);
-				}
-				i++;
 			}
 			p++;
 		}
-		for (CHAN c : tour.getChan()) {
-			c.setTour(tour);
-			if (!checkDateLocal(c.getNgayBatDau(), c.getNgayKetThuc())) {
-				return new ResponseEntity<>("Thời gian chặn không hợp lệ", HttpStatus.BAD_REQUEST);
-			}
+		for(int y=0;y<tour.getChan().size();y++) {
+			tour.getChan().get(y).setTour(tour);
 		}
+		
+		validateChans(tour.getChan(), tour.getSoNgay());
 		tourRepository.save(tour);
 		thoiGianKhoiHanhRepo.saveAll(tour.getThoiGianKhoiHanh2());
 		tour.getThoiGianKhoiHanh2().forEach(v -> {
 			giaUuDaiRepo.saveAll(v.getGiaUuDai());
 		});
 		chanRepo.saveAll(tour.getChan());
-		tourRepository.deleteThoiGianKhoiHanhNotInList(tour.getThoiGianKhoiHanh2(), tour);
-		tourRepository.deleteChanNotInList(tour.getChan(), tour);
-		return new ResponseEntity<>("Thêm thành công", HttpStatus.OK);
+		Response r= new Response(HttpStatus.OK,"ok",null);
+		return new ResponseEntity<>(r, HttpStatus.OK);
 	}
 
 	@PostMapping("add")
 	@Transactional
-	public ResponseEntity<Object> addTour(@Valid @RequestBody Tour tour, BindingResult bindingRel) {
+	public ResponseEntity<Object> addTour(@Valid @RequestBody Tour tour, BindingResult bindingRel) throws Exception {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 		if (bindingRel.hasErrors()) {
 			String errorMessage = bindingRel.getFieldErrors().get(0).getDefaultMessage();
-			System.out.println("có lỗ");
 			return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 		}
 		int p = 0;
+		if(tour.getMoTa()==null||tour.getMoTa().length()==0) {
+			throw new Exception("Vui lòng cung cấp thông tin mô tả cho tour");
+		}
 		for (ThoiGianKhoiHanh t : tour.getThoiGianKhoiHanh2()) {
 			if (t.getThoiGian().isBefore(LocalDateTime.now())) {
 				return new ResponseEntity<>("Thời gian khởi hành không hợp lệ", HttpStatus.BAD_REQUEST);
 			}
 			if (!checkNhanVienTrungCa(tour.getSoNgay(), p, tour.getThoiGianKhoiHanh2(), t.getThoiGian(),
 					t.getThoiGian().plusDays(tour.getSoNgay()), t.getNhanVien().getId())) {
-				return new ResponseEntity<>("Nhân viên bị trùng lịch tour", HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST,"Nhân viên "+t.getNhanVien().getTen()+" đã có lịch hướng dẫn trùng", null), HttpStatus.OK);
 			}
 			t.setTour(tour);
 			int i = 0;
-			for (GiaUuDai b : t.getGiaUuDai()) {
-				if (!checkTrungUuDai(t.getGiaUuDai(), b, i)) {
-					return new ResponseEntity<>("Thời gian ưu đãi không được trùng", HttpStatus.BAD_REQUEST);
+			checkTrungUuDai2(t.getGiaUuDai(),t.getThoiGian());
+			for(int f=0;f<t.getGiaUuDai().size();f++) {
+				if(t.getGiaUuDai().get(f).getGia()>=t.getGia()) {
+					throw new Exception("Giá ưu đãi thứ: "+(f+1)+ " của thời gian khởi hành: "+t.getThoiGian().format(formatter));
 				}
-				b.setThoiGianKhoiHanhl(t);
-				if (!checkDate(b.getNgayGioApDung(), b.getNgayKetThuc())) {
-					return new ResponseEntity<>("Thời gian ưu đãi không hợp lệ", HttpStatus.BAD_REQUEST);
-				}
-				if (b.getGia() < 0) {
-					return new ResponseEntity<>("Giá ưu đãi ko hợp lệ", HttpStatus.BAD_REQUEST);
-				}
-				i++;
 			}
 			p++;
 		}
-		for (CHAN c : tour.getChan()) {
-			c.setTour(tour);
-			if (!checkDateLocal(c.getNgayBatDau(), c.getNgayKetThuc())) {
-				return new ResponseEntity<>("Thời gian chặn không hợp lệ", HttpStatus.BAD_REQUEST);
-			}
+		for(int y=0;y<tour.getChan().size();y++) {
+			tour.getChan().get(y).setTour(tour);
 		}
+		
+		validateChans(tour.getChan(), tour.getSoNgay());
 		tourRepository.save(tour);
 		thoiGianKhoiHanhRepo.saveAll(tour.getThoiGianKhoiHanh2());
 		tour.getThoiGianKhoiHanh2().forEach(v -> {
 			giaUuDaiRepo.saveAll(v.getGiaUuDai());
 		});
 		chanRepo.saveAll(tour.getChan());
-		return new ResponseEntity<>("Thêm thành công", HttpStatus.OK);
+		Response r= new Response(HttpStatus.OK,"ok",null);
+		return new ResponseEntity<>(r, HttpStatus.OK);
 	}
 
 	@GetMapping("/getbyid")
@@ -292,7 +359,6 @@ public class TourController {
 	public ResponseEntity<Response> getInforTour(@RequestParam("id") int id, @RequestParam(name = "idnv",required = false) String idnv) {
 			Tour t=tourService.getInforTour(id);
 			t.getThoiGianKhoiHanh2().removeIf((data)->{
-				System.out.println("-----------------");
 				System.out.println(thoiGianKhoiHanhService.kiemtratrung(data,idnv ));
 				if(data.getThoiGian().isAfter(LocalDateTime.now().plusHours(6))&&data.getVe().size()<t.getSoNguoiThamGia()
 					&&thoiGianKhoiHanhService.kiemtratrung(data,idnv )) {
