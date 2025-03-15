@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.hethongthuongmaidientu.Service.DichVuService;
 import com.example.hethongthuongmaidientu.model.DichVu;
 import com.example.hethongthuongmaidientu.model.Response;
+import com.example.hethongthuongmaidientu.model.ServiceSort;
 import com.example.hethongthuongmaidientu.model.Tour;
+import com.example.hethongthuongmaidientu.repository.DichVuRepository;
 import com.example.hethongthuongmaidientu.repository.TourRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -24,6 +26,12 @@ import jakarta.persistence.EntityNotFoundException;
 public class DichVuController {
 	@Autowired
 	private DichVuService dichVuService;
+	
+	@Autowired
+	private DichVuRepository dichVuRepository;
+	
+	@Autowired
+	private ServiceSort serviceSort;
 	
 	@Autowired
 	private TourRepository tourRepository;
@@ -52,6 +60,14 @@ public class DichVuController {
 		r.setData(dv);
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r,HttpStatus.OK);
+	}
+	
+	@GetMapping("/phuhop")
+	public ResponseEntity<Response> getPhuHopByTour(@RequestParam("id") int idtour){
+		Tour t= tourRepository.findById(idtour).orElseThrow(()-> new EntityNotFoundException("Không tìm thấy tour"));
+		List<DichVu> dv= dichVuRepository.findAll();
+		serviceSort.sort(dv, t.getTags());
+		return new ResponseEntity<Response>( new Response(HttpStatus.OK, "OK", dv),HttpStatus.OK);
 	}
 
 }
