@@ -23,8 +23,6 @@ public class ThoiGianKhoiHanhService {
 	//không trùng -> return true
 	public boolean kiemtratrung(ThoiGianKhoiHanh t,String idkh) {
 		List<ThoiGianKhoiHanh> tt= thoiGianKhoiHanhRepository.gettrung(t.getTour().getId(),idkh);
-		System.out.println("tour id : "+t.getTour().getId());
-		System.out.println(idkh);
 		if(tt.size()==0) {
 			System.out.println("vào điều kiện 1");
 			return true;
@@ -41,7 +39,6 @@ public class ThoiGianKhoiHanhService {
 		return true;
 	}
 	
-	//Kiểm tra lại cả tour
 	public boolean loctour(int idtour, String sdt) {
 		Tour t= tourRepository.findById(idtour).orElseThrow(()-> new EntityNotFoundException("Không tìm thấy tour"));
 		for(int i=0;i<t.getThoiGianKhoiHanh2().size();i++) {

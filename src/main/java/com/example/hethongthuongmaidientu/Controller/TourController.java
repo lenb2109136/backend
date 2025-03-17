@@ -323,6 +323,22 @@ public class TourController {
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
+	@GetMapping("/getlistour2")
+	public ResponseEntity<Response> getListTour(@RequestParam("cart") List<Map<Object, Object>> ma, @RequestParam("sdt") String sdt) {
+		List<Map<Object, Object>> mapList = tourService.getListTour();
+		mapList.removeIf(map -> {
+			if(thoiGianKhoiHanhService.loctour((Integer)map.get("T_ID"), sdt)==false
+					|| tourService.kiemtracon((Integer) map.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
+		});
+		Response r = new Response();
+		r.setData(mapList);
+		r.setMessage("OK");
+		r.setStatus(HttpStatus.OK);
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
+	}
 
 	
 	//ĐÃ CHECK ĐIỀU KIỆN-2
