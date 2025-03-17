@@ -51,7 +51,6 @@ public class VeController {
 	public ResponseEntity<Response> huyVe(@RequestParam("id") int id,
 			@RequestParam("bd") LocalDateTime bd,
 			@RequestParam("kt") LocalDateTime kt) {
-
 		Response r = new Response();
 		r.setData(veRepository.getve(id, bd, kt));
 		r.setStatus(HttpStatus.OK);

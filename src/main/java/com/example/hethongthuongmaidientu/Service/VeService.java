@@ -1,5 +1,7 @@
 package com.example.hethongthuongmaidientu.Service;
 
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +53,10 @@ public class VeService {
 
 			VE v = new VE();
 			v.setKhachHang(kh);
+			v.setNgayDat(LocalDateTime.now());
 			v.setThoiGianKhoiHanh(tt);
+			System.out.println("danh sách khách hàng: "+t.getIdkh());
+			System.out.println("danh sách dịch vụ: "+data.getDsdv().size());
 			System.out.println("GIÁ: "+tt.getGia());
 			v.setGia(tt.getGia());
 			veRepository.save(v);
