@@ -67,7 +67,13 @@ public class DichVuController {
 		Tour t= tourRepository.findById(idtour).orElseThrow(()-> new EntityNotFoundException("Không tìm thấy tour"));
 		List<DichVu> dv= dichVuRepository.findAll();
 		serviceSort.sort(dv, t.getTags());
-		return new ResponseEntity<Response>( new Response(HttpStatus.OK, "OK", dv),HttpStatus.OK);
+		List<DichVu> main = new ArrayList<DichVu>();
+		if(dv.size()>5) {
+		 for(int i=0;i<5;i++) {
+			 main.add(dv.get(i));
+		 }
+		}
+		return new ResponseEntity<Response>( new Response(HttpStatus.OK, "OK", main),HttpStatus.OK);
 	}
 
 }

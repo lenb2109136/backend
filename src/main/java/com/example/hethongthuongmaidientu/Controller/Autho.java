@@ -54,6 +54,7 @@ public class Autho {
 			authoreturn.put("role", "nhanvien");
 			authoreturn.put("ten", nv.getTen());
 			authoreturn.put("sdt", nv.getSdt());
+			authoreturn.put("id", nv.getId());
 			NHANVIEN.idnv=nv.getId();
 		}
 		else {
@@ -61,6 +62,7 @@ public class Autho {
 			authoreturn.put("role", "khachhang");
 			authoreturn.put("ten", kh.getTen());
 			authoreturn.put("sdt", kh.getSoDienThoai());
+			authoreturn.put("id", kh.getId());
 			KhachHang.idkh=kh.getId();
 		}
 		 Response r= new Response();

@@ -206,7 +206,7 @@ public class TourController {
 			if (t.getThoiGian().isBefore(LocalDateTime.now())) {
 				return new ResponseEntity<>("Thời gian khởi hành không hợp lệ", HttpStatus.BAD_REQUEST);
 			}
-			if (!checkNhanVienTrungCa(tour.getSoNgay(), p, tour.getThoiGianKhoiHanh2(), t.getThoiGian(),
+			if (!checkNhanVienTrungCa(tour.getSoNgay(), p, tour.getThoiGianKhoiHanh2().stream().filter(v->v.getId()==null).toList(), t.getThoiGian(),
 					t.getThoiGian().plusDays(tour.getSoNgay()), t.getNhanVien().getId())) {
 				return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST,"Nhân viên "+t.getNhanVien().getTen()+" đã có lịch hướng dẫn trùng", null), HttpStatus.OK);
 			}
