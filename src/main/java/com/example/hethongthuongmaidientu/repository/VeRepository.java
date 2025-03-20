@@ -26,4 +26,15 @@ public interface VeRepository extends JpaRepository<VE, Integer> {
     		+ "WHERE t.TGKH_THOIGIAN > NOW() AND t.T_ID=:id",nativeQuery =true)
     public List<VE> gettrung();
     
+    @Query(value = "SELECT * FROM ve WHERE KH_ID=:idkh",nativeQuery = true)
+    public List<VE> getVeByKhachHang(int idkh);
+    
+@Query(value = "SELECT * \r\n"
+		+ "FROM ve \r\n"
+		+ "WHERE KH_ID = :id\r\n"
+		+ "ORDER BY V_NGAYDAT DESC \r\n"
+		+ "LIMIT 1;\r\n"
+		+ "",nativeQuery = true)
+public VE getvenew (int id);
+    
 }

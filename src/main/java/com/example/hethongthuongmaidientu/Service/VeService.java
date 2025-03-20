@@ -21,6 +21,7 @@ import com.example.hethongthuongmaidientu.repository.TourRepository;
 import com.example.hethongthuongmaidientu.repository.VeRepository;
 
 import DTO.ThongTinDatVe;
+import DTO.VeDTO;
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
@@ -44,22 +45,27 @@ public class VeService {
 	private ThoiGianKhoiHanhRepository thoiGianKhoiHanhRepository;
 
 	@Transactional
-	public void themVeMoi(ThongTinDatVe t) {
+	public VE themVeMoi(ThongTinDatVe t) {
+		VE vv= new VE();
 		KhachHang kh = khachHangRepository.findById(t.getIdkh())
 				.orElseThrow(() -> new EntityNotFoundException("Không tìm thấy khách hàng cần đặt"));
-			t.getInfove().forEach(data -> {
+			for(int kk=0;kk<t.getInfove().size();kk++) {
+				VeDTO data=t.getInfove().get(kk);
 			ThoiGianKhoiHanh tt = thoiGianKhoiHanhRepository.findById(data.getIdtgkh())
-				.orElseThrow(() -> new EntityNotFoundException("Vui lòng chọn thời gian khởi hành cho tour"));
-
+			.orElseThrow(() -> new EntityNotFoundException("Vui lòng chọn thời gian khởi hành cho tour"));
 			VE v = new VE();
 			v.setKhachHang(kh);
 			v.setNgayDat(LocalDateTime.now());
 			v.setThoiGianKhoiHanh(tt);
-			System.out.println("danh sách khách hàng: "+t.getIdkh());
-			System.out.println("danh sách dịch vụ: "+data.getDsdv().size());
-			System.out.println("GIÁ: "+tt.getGia());
 			v.setGia(tt.getGia());
+			tt.getGiaUuDai().forEach((da)->{
+				if(!LocalDateTime.now().isBefore(da.getNgayGioApDung()) && !LocalDateTime.now().isAfter(da.getNgayKetThuc())) {
+					v.setGia(da.getGia());
+				}
+			});
 			veRepository.save(v);
+			System.out.println("thông tin id vé: "+v.getId());
+			vv=v;
 			data.getDsdv().forEach(d -> {
 				DichVu d1 = dichVuRepository.findById(d)
 						.orElseThrow(() -> new EntityNotFoundException("Không tìm thấy dịch vụ cần đăng ký"));
@@ -70,7 +76,7 @@ public class VeService {
 				pp.setVe(v);
 				phiDichVuRepository.save(pp);
 			});
-		});
-
+		}
+				return vv;
 	}
 }

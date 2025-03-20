@@ -112,7 +112,7 @@ public class TourService {
 	            .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy tour"));
 
 	    for (ThoiGianKhoiHanh data : t.getThoiGianKhoiHanh2()) {
-	        if (data.getThoiGian().isAfter(LocalDateTime.now().plusHours(6)) 
+	        if (!data.getThoiGian().isBefore(LocalDateTime.now().plusHours(6)) 
 	                && data.getVe().size() < t.getSoNguoiThamGia()) {
 	            return true;
 	        }
