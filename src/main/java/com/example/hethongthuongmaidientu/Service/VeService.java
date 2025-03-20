@@ -1,7 +1,5 @@
 package com.example.hethongthuongmaidientu.Service;
 
-import java.time.LocalDateTime;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,14 +47,11 @@ public class VeService {
 				.orElseThrow(() -> new EntityNotFoundException("Không tìm thấy khách hàng cần đặt"));
 			t.getInfove().forEach(data -> {
 			ThoiGianKhoiHanh tt = thoiGianKhoiHanhRepository.findById(data.getIdtgkh())
-				.orElseThrow(() -> new EntityNotFoundException("Vui lòng chọn thời gian khởi hành cho tour"));
+				.orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thời gian khởi hành phù hợp"));
 
 			VE v = new VE();
 			v.setKhachHang(kh);
-			v.setNgayDat(LocalDateTime.now());
 			v.setThoiGianKhoiHanh(tt);
-			System.out.println("danh sách khách hàng: "+t.getIdkh());
-			System.out.println("danh sách dịch vụ: "+data.getDsdv().size());
 			System.out.println("GIÁ: "+tt.getGia());
 			v.setGia(tt.getGia());
 			veRepository.save(v);

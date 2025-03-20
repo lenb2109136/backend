@@ -31,10 +31,10 @@ public class CHAN {
 	private String moTa;
 
 	@Column(name = "C_NGAYBATDAU")
-	private int ngayBatDau;
+	private LocalDate ngayBatDau;
 
 	@Column(name = "C_NGAYKETTHUC")
-	private int ngayKetThuc;
+	private LocalDate ngayKetThuc;
 
 	@JsonIgnore
 	@ManyToOne
@@ -73,22 +73,20 @@ public class CHAN {
 		this.moTa = moTa;
 	}
 
-	public int getNgayBatDau() {
+	public LocalDate getNgayBatDau() {
 		return ngayBatDau;
 	}
 
-	public void setNgayBatDau(int ngayBatDau) {
+	public void setNgayBatDau(LocalDate ngayBatDau) {
 		this.ngayBatDau = ngayBatDau;
 	}
 
-	public int getNgayKetThuc() {
+	public LocalDate getNgayKetThuc() {
 		return ngayKetThuc;
 	}
 
-	public void setNgayKetThuc(int ngayKetThuc) {
+	public void setNgayKetThuc(LocalDate ngayKetThuc) {
 		this.ngayKetThuc = ngayKetThuc;
 	}
-
-	
 
 }

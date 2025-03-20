@@ -44,6 +44,7 @@ public class JWT {
 				.issueTime(new Date())
 				.expirationTime(new Date(Instant.now().plus(5,ChronoUnit.HOURS).toEpochMilli()))
 				.claim("scope", role)
+				.claim("authorities", role)
 				
 				.build();
 		Payload payload= new Payload(claim.toJSONObject());

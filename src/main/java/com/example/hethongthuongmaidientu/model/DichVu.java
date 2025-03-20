@@ -26,32 +26,6 @@ public class DichVu {
 
 	@Column(name = "DV_ANH")
 	private String anh;
-	
-	@Column(name = "DV_TAGS")
-	private String tags;
-	public DichVu(int id, String ten, String moTa, float gia, String anh, String tags) {
-        this.id = id;
-        this.ten = ten;
-        this.moTa = moTa;
-        this.gia = gia;
-        this.anh = anh;
-        this.tags = tags;
-    }
-
-		
-
-	public DichVu() {
-	}
-
-
-
-	public String getTags() {
-		return tags;
-	}
-
-	public void setTags(String tags) {
-		this.tags = tags;
-	}
 
 	public String getAnh() {
 		return anh;

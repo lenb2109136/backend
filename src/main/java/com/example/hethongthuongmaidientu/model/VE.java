@@ -2,7 +2,6 @@ package com.example.hethongthuongmaidientu.model;
 
 import java.security.PrivateKey;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -13,7 +12,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -38,21 +36,6 @@ public class VE {
 
 	@Column(name = "V_NGAYDAT")
 	private LocalDateTime ngayDat;
-	
-	
-	@OneToMany(mappedBy = "ve")
-	private List<PhiDichVu> phiDichVu;
-	
-	
-	
-
-	public List<PhiDichVu> getPhiDichVu() {
-		return phiDichVu;
-	}
-
-	public void setPhiDichVu(List<PhiDichVu> phiDichVu) {
-		this.phiDichVu = phiDichVu;
-	}
 
 	public KhachHang getKhachHang() {
 		return khachHang;
