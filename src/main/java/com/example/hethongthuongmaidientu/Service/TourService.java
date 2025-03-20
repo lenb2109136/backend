@@ -39,11 +39,11 @@ public class TourService {
 	}
 
 	public List<Map<Object, Object>> getByFilter(Map<String, Object> map) {
-		String ten=(String)map.get("ten");
-		if(ten==null||ten=="") {
-			ten="";
+		String ten = (String) map.get("ten");
+		if (ten == null || ten == "") {
+			ten = "";
 		}
-		List<Map<Object, Object>> l = tourRepository.getListTourFilter((Integer) map.get("loai"),ten);
+		List<Map<Object, Object>> l = tourRepository.getListTourFilter((Integer) map.get("loai"), ten);
 		List<Map<Object, Object>> l2 = new ArrayList<Map<Object, Object>>();
 		List<Map<Object, Object>> ngay = (List<Map<Object, Object>>) map.get("dsNgay");
 		List<Map<Object, Object>> ThoiLuong = (List<Map<Object, Object>>) map.get("thoiLuong");
@@ -56,21 +56,19 @@ public class TourService {
 			int songay = (int) l.get(i).get("T_SONGAY");
 			float gia = ((Number) l.get(i).get("gia")).floatValue();
 			boolean kiemtra = false;
-		
+
 			if (gia >= a && gia <= b) {
 				if (ngay.size() == 0 && ThoiLuong.size() == 0) {
 					l2.add(l.get(i));
-				}
-				else if(ngay.size() == 0) {
-					for (int k = 0; k < ThoiLuong.size(); k++) { 
+				} else if (ngay.size() == 0) {
+					for (int k = 0; k < ThoiLuong.size(); k++) {
 						if (songay >= (Integer) ThoiLuong.get(k).get("batDau")
 								&& songay <= (Integer) ThoiLuong.get(k).get("KetThuc")) {
-									l2.add(l.get(i));
+							l2.add(l.get(i));
 						} else {
 						}
 					}
-				}
-				else  {
+				} else {
 					if (ngay.size() == 0) {
 						l2.add(l.get(i));
 					} else {
@@ -82,11 +80,11 @@ public class TourService {
 								if (ThoiLuong.size() == 0) {
 									l2.add(l.get(i));
 								} else {
-									for (int k = 0; k < ThoiLuong.size(); k++) { 
+									for (int k = 0; k < ThoiLuong.size(); k++) {
 										if (songay >= (Integer) ThoiLuong.get(k).get("batDau")
 												&& songay <= (Integer) ThoiLuong.get(k).get("KetThuc")) {
-													l2.add(l.get(i));
-													break;
+											l2.add(l.get(i));
+											break;
 										} else {
 											f = false;
 										}
@@ -105,5 +103,19 @@ public class TourService {
 		}
 		return l2;
 
+	}
+
+	public boolean kiemtracon(int id) {
+		Tour t = tourRepository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("Không tìm thấy tour"));
+
+		for (ThoiGianKhoiHanh data : t.getThoiGianKhoiHanh2()) {
+			if (!data.getThoiGian().isBefore(LocalDateTime.now().plusHours(6))
+					&& data.getVe().size() < t.getSoNguoiThamGia()) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

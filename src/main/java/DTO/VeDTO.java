@@ -10,11 +10,9 @@ public class VeDTO {
     public Integer getIdtgkh() {
 		return idtgkh;
 	}
-
 	public void setIdtgkh(Integer idtgkh) {
 		this.idtgkh = idtgkh;
 	}
-
 	public List<Integer> getDsdv() {
         return dsdv;
     }

@@ -23,11 +23,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.hethongthuongmaidientu.Service.TourService;
 import com.example.hethongthuongmaidientu.model.CHAN;
 import com.example.hethongthuongmaidientu.model.GiaUuDai;
+import com.example.hethongthuongmaidientu.model.KhachHang;
 import com.example.hethongthuongmaidientu.model.Response;
 import com.example.hethongthuongmaidientu.model.ThoiGianKhoiHanh;
 import com.example.hethongthuongmaidientu.model.Tour;
 import com.example.hethongthuongmaidientu.repository.ChanRepository;
 import com.example.hethongthuongmaidientu.repository.GiaUuDaiRepository;
+import com.example.hethongthuongmaidientu.repository.KhachHangRepository;
 import com.example.hethongthuongmaidientu.repository.ThoiGianKhoiHanhRepository;
 import com.example.hethongthuongmaidientu.repository.TourRepository;
 
@@ -42,6 +44,9 @@ public class TourController {
 
 	@Autowired
 	GiaUuDaiRepository giaUuDaiRepo;
+
+	@Autowired
+	private KhachHangRepository khachHangRepository;
 
 	@Autowired
 	private TourRepository tourRepository;
@@ -256,8 +261,19 @@ public class TourController {
 	}
 
 	@GetMapping("/getinfortour")
-	public ResponseEntity<Response> getInforTour(@RequestParam("id") int id) {
-
+	public ResponseEntity<Response> getInforTour(@RequestParam("id") int id,
+			@RequestParam(name = "idnv", required = false) String idnv) {
+		Tour t = tourService.getInforTour(id);
+		KhachHang k = khachHangRepository.findBySoDienThoai(idnv);
+		List<ThoiGianKhoiHanh> ttGianKhoiHanhs = thoiGianKhoiHanhRepository.getThoiGianKhoiHanh(k.getId());
+		t.getThoiGianKhoiHanh2().removeIf((data) -> {
+			if (data.getThoiGian().isAfter(LocalDateTime.now().plusHours(6))
+					&& data.getVe().size() < t.getSoNguoiThamGia()
+					&& thoiGianKhoiHanhService.kiemtratrung(data, idnv, ttGianKhoiHanhs)) {
+				return false;
+			}
+			return true;
+		});
 		Response r = new Response();
 		r.setData(tourService.getInforTour(id));
 		r.setMessage("OK");
