@@ -1,5 +1,7 @@
 package com.example.hethongthuongmaidientu.Service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -8,6 +10,9 @@ import com.example.hethongthuongmaidientu.model.ThoiGianKhoiHanh;
 import com.example.hethongthuongmaidientu.model.Tour;
 import com.example.hethongthuongmaidientu.repository.KhachHangRepository;
 import com.example.hethongthuongmaidientu.repository.ThoiGianKhoiHanhRepository;
+import com.example.hethongthuongmaidientu.repository.TourRepository;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class ThoiGianKhoiHanhService {

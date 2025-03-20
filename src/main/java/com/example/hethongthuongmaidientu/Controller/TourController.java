@@ -265,7 +265,7 @@ public class TourController {
 			@RequestParam(name = "idnv", required = false) String idnv) {
 		Tour t = tourService.getInforTour(id);
 		KhachHang k = khachHangRepository.findBySoDienThoai(idnv);
-		List<ThoiGianKhoiHanh> ttGianKhoiHanhs = thoiGianKhoiHanhRepository.getThoiGianKhoiHanh(k.getId());
+		List<ThoiGianKhoiHanh> ttGianKhoiHanhs = thoiGianKhoiHanhRepo.getThoiGianKhoiHanh(k.getId());
 		t.getThoiGianKhoiHanh2().removeIf((data) -> {
 			if (data.getThoiGian().isAfter(LocalDateTime.now().plusHours(6))
 					&& data.getVe().size() < t.getSoNguoiThamGia()
