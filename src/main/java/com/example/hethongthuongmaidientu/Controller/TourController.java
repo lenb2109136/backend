@@ -380,6 +380,7 @@ public class TourController {
 	public ResponseEntity<Response> getInforTour(@RequestParam("id") int id, @RequestParam(name = "idnv",required = false) String idnv) {
 			Tour t=tourService.getInforTour(id);
 			KhachHang k =khachHangRepository.findBySoDienThoai(idnv);
+			System.out.println("id nhân viên; "+k);
 			List<ThoiGianKhoiHanh> ttGianKhoiHanhs=thoiGianKhoiHanhRepository.getThoiGianKhoiHanh(k.getId());
 			t.getThoiGianKhoiHanh2().removeIf((data)->{
 				if(data.getThoiGian().isAfter(LocalDateTime.now().plusHours(6))&&data.getVe().size()<t.getSoNguoiThamGia()
@@ -414,6 +415,18 @@ public class TourController {
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 
+	}
+	
+	@GetMapping("/getAllTours")
+	public ResponseEntity<Response> getAllTours() {
+	    List<Map<Object, Object>> mapList = tourService.getListTour();
+	    mapList.removeIf(map -> tourService.kiemtracon((Integer) map.get("T_ID")) == false);
+	    Response r = new Response();
+	    r.setData(mapList);
+	    r.setMessage("OK");
+	    r.setStatus(HttpStatus.OK);
+	    
+	    return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
 
 //	@GetMapping("/getAll")

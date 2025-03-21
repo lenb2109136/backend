@@ -40,8 +40,10 @@ public class TourService {
 	}
 
 	public List<Map<Object, Object>> getByFilter(Map<String, Object> map) {
+		System.out.println("XONG---------------------");
 		String ten=(String)map.get("ten");
 		if(ten==null||ten=="") {
+			
 			ten="";
 		}
 		List<Map<Object, Object>> l = tourRepository.getListTourFilter((Integer) map.get("loai"),ten);
@@ -50,6 +52,7 @@ public class TourService {
 		List<Map<Object, Object>> ThoiLuong = (List<Map<Object, Object>>) map.get("thoiLuong");
 		float a = ((Number) map.get("giaBatDau")).floatValue();
 		float b = ((Number) map.get("giaKetThuc")).floatValue();
+		System.out.println("VÀO ĐÂY");
 		for (int i = 0; i < l.size(); i++) {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
 			LocalDateTime localDateTime = LocalDateTime.parse((String) l.get(i).get("TGKH_THOIGIAN"), formatter);
@@ -59,10 +62,12 @@ public class TourService {
 			boolean kiemtra = false;
 		
 			if (gia >= a && gia <= b) {
+				System.out.println("vào giá");
 				if (ngay.size() == 0 && ThoiLuong.size() == 0) {
 					l2.add(l.get(i));
 				}
 				else if(ngay.size() == 0) {
+					System.out.println("vào else");
 					for (int k = 0; k < ThoiLuong.size(); k++) { 
 						if (songay >= (Integer) ThoiLuong.get(k).get("batDau")
 								&& songay <= (Integer) ThoiLuong.get(k).get("KetThuc")) {
@@ -101,6 +106,9 @@ public class TourService {
 						}
 					}
 				}
+			}
+			else {
+				System.out.println("Giá không hợp lệ");
 			}
 
 		}
