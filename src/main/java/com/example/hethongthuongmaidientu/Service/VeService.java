@@ -67,8 +67,10 @@ public class VeService {
 			System.out.println("thông tin id vé: "+v.getId());
 			vv=v;
 			data.getDsdv().forEach(d -> {
-				DichVu d1 = dichVuRepository.findById(d)
+				DichVu d1 = dichVuRepository.findById(d+1)
 						.orElseThrow(() -> new EntityNotFoundException("Không tìm thấy dịch vụ cần đăng ký"));
+				System.out.println("id dịch vụ : "+d1.getId());
+				System.out.println("Tên dịch vụ : "+d1.getTen());
 				PhiDichVu pp = new PhiDichVu();
 				pp.setDichVu(d1);
 				System.out.println(d1.getGia());

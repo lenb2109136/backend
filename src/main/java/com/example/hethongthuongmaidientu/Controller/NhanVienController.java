@@ -23,6 +23,4 @@ public class NhanVienController {
     public ResponseEntity<Object> getAllNhanVien() {
         return new ResponseEntity<>(nhanVienRepo.findAll(), HttpStatus.OK);
     }
-    
-  
 }

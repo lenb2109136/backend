@@ -3,8 +3,10 @@ package com.example.hethongthuongmaidientu.Controller;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,7 @@ import com.example.hethongthuongmaidientu.model.CHAN;
 import com.example.hethongthuongmaidientu.model.GiaUuDai;
 import com.example.hethongthuongmaidientu.model.KhachHang;
 import com.example.hethongthuongmaidientu.model.Response;
+import com.example.hethongthuongmaidientu.model.StringSimilarityFilter;
 import com.example.hethongthuongmaidientu.model.ThoiGianKhoiHanh;
 import com.example.hethongthuongmaidientu.model.Tour;
 import com.example.hethongthuongmaidientu.repository.ChanRepository;
@@ -38,6 +41,7 @@ import com.example.hethongthuongmaidientu.repository.KhachHangRepository;
 import com.example.hethongthuongmaidientu.repository.ThoiGianKhoiHanhRepository;
 import com.example.hethongthuongmaidientu.repository.TourRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
@@ -402,6 +406,7 @@ public class TourController {
 	public ResponseEntity<Response> getInforTour(@RequestBody Map<String, Object> map) {
 		System.out.println((String) map.get("sdt"));
 		List<Map<Object, Object>> mapList = tourService.getByFilter(map);
+		System.out.println("danh sách : "+mapList.size());
 		mapList.removeIf(mapT -> {
 			if(thoiGianKhoiHanhService.loctour((Integer)mapT.get("T_ID"), (String) map.get("sdt"))==false
 					|| tourService.kiemtracon((Integer) mapT.get("T_ID"))==false) {
@@ -429,6 +434,45 @@ public class TourController {
 	    return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
 
+	@GetMapping("/getsearch")
+	public ResponseEntity<Response> getListTodur(@RequestParam("sdt") String sdt,@RequestParam("thamso") String thamso) {
+		List<Map<Object, Object>> mapList = tourService.getListTour();
+		mapList.removeIf(map -> {
+			if(thoiGianKhoiHanhService.loctour((Integer)map.get("T_ID"), sdt)==false
+					|| tourService.kiemtracon((Integer) map.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
+		});
+		List<Map<Object, Object>> hh=StringSimilarityFilter.filterBySimilarity(thamso,mapList);
+		Response r = new Response();
+		r.setData(hh);
+		r.setMessage("OK");
+		r.setStatus(HttpStatus.OK);
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
+	}
+	
+	@PostMapping("filtermix")
+	public ResponseEntity<Response> filtermix(@RequestBody Map<String, Object> map) {
+		System.out.println((String) map.get("sdt"));
+		List<Map<Object, Object>> mapList = tourService.getByFilter(map);
+		System.out.println("danh sách : "+mapList.size());
+		mapList.removeIf(mapT -> {
+			if(thoiGianKhoiHanhService.loctour((Integer)mapT.get("T_ID"), (String) map.get("sdt"))==false
+					|| tourService.kiemtracon((Integer) mapT.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
+		});
+		List<Map<Object, Object>> jk= StringSimilarityFilter.filterBySimilarity((String) map.get("thamso"), mapList);
+		Response r = new Response();
+		r.setData(jk);
+		r.setMessage("OK");
+		r.setStatus(HttpStatus.OK);
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
+
+	}
+	
 //	@GetMapping("/getAll")
 //	public ResponseEntity<Response> getAllAtribute() {
 //		Response r = new Response();
@@ -508,6 +552,33 @@ public class TourController {
 	@GetMapping("/gettags")
 	public ResponseEntity<Response> gettags(){
 		return  new ResponseEntity<Response>(new Response(HttpStatus.OK,"ok",tourRepository.getTags()),HttpStatus.OK);
+	}
+	
+	@GetMapping("/getmaxmin")
+	public ResponseEntity<Response> getmaxmin(@RequestParam("id") int id) {
+		Tour t= tourRepository.findById(id).orElseThrow(()-> new EntityNotFoundException("Không tìm thấy tour phù hợp"));
+		float min=1000000000;
+		float max=0;
+		for(int i=0;i<t.getThoiGianKhoiHanh2().size();i++) {
+			if(t.getThoiGianKhoiHanh2().get(i).getGia()<min) {
+				min=t.getThoiGianKhoiHanh2().get(i).getGia();
+			}
+			if(t.getThoiGianKhoiHanh2().get(i).getGia()>min) {
+				max=t.getThoiGianKhoiHanh2().get(i).getGia();
+			}
+			for(int u=0;u<t.getThoiGianKhoiHanh2().get(i).getGiaUuDai().size();u++) {
+				if(t.getThoiGianKhoiHanh2().get(i).getGiaUuDai().get(u).getGia()<min) {
+					min=t.getThoiGianKhoiHanh2().get(i).getGiaUuDai().get(u).getGia();
+				}
+				if(t.getThoiGianKhoiHanh2().get(i).getGiaUuDai().get(u).getGia()>max) {
+					max=t.getThoiGianKhoiHanh2().get(i).getGiaUuDai().get(u).getGia();
+				}
+			}
+		}
+		Map<Object, Object> p= new HashMap<Object, Object>();
+		p.put("max", max);
+		p.put("min", min);
+		return  new ResponseEntity<Response>(new Response(HttpStatus.OK,"ok",p),HttpStatus.OK);
 	}
 
 }

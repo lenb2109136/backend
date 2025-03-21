@@ -40,19 +40,25 @@ public class TourService {
 	}
 
 	public List<Map<Object, Object>> getByFilter(Map<String, Object> map) {
-		System.out.println("XONG---------------------");
-		String ten=(String)map.get("ten");
-		if(ten==null||ten=="") {
-			
-			ten="";
+		System.out.println("đi vào đây");
+		
+		List<Map<Object, Object>> l = new ArrayList<Map<Object,Object>>();
+		if((Integer) map.get("loai")==0) {
+			System.out.println("huhuko");
+			l=tourRepository.getListTourFilterBYyNotLoai();
 		}
-		List<Map<Object, Object>> l = tourRepository.getListTourFilter((Integer) map.get("loai"),ten);
+		
+		else {
+			System.out.println("VÀO ĐÂY");
+			l=tourRepository.getListTourFilterByLT((Integer) map.get("loai"));
+			System.out.println(l.size());
+		}
+		System.out.println("huhu");
 		List<Map<Object, Object>> l2 = new ArrayList<Map<Object, Object>>();
 		List<Map<Object, Object>> ngay = (List<Map<Object, Object>>) map.get("dsNgay");
 		List<Map<Object, Object>> ThoiLuong = (List<Map<Object, Object>>) map.get("thoiLuong");
 		float a = ((Number) map.get("giaBatDau")).floatValue();
 		float b = ((Number) map.get("giaKetThuc")).floatValue();
-		System.out.println("VÀO ĐÂY");
 		for (int i = 0; i < l.size(); i++) {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
 			LocalDateTime localDateTime = LocalDateTime.parse((String) l.get(i).get("TGKH_THOIGIAN"), formatter);

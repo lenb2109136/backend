@@ -78,7 +78,6 @@ public class VeController {
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
-	
 	@GetMapping("getvenew")
 	public ResponseEntity<Response> getVeBy(@RequestParam("id") int id){
 		VE v= veRepository.getvenew(id);

@@ -4,26 +4,47 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 
-import org.apache.commons.text.similarity.JaroWinklerSimilarity;
+import java.text.Normalizer;
+import java.util.*;
+
 
 public class StringSimilarityFilter {
-	  public static List<Map<String, Object>> filterBySimilarity(String input, List<Map<String, Object>> list) {
-	        if (input == null || list == null) {
-	            return Collections.emptyList();
-	        }
+	
+	   public static List<Map<Object, Object>> filterBySimilarity(String input, List<Map<Object, Object>> list) {
+	        // Chuẩn hóa input để loại bỏ dấu
+	        String normalizedInput = normalizeString(input);
 
-	        JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
+	        list.sort((map1, map2) -> {
+	            String tourName1 = normalizeString((String) map1.get("T_TEN"));
+	            String tourName2 = normalizeString((String) map2.get("T_TEN"));
 
-	        return list.stream()
-	                .filter(map -> {
-	                    if (map.containsKey("T_TEN")) {
-	                        String name = map.get("T_TEN").toString();
-	                        double score = similarity.apply(input, name);
-	                        return score >= 0.7; 
-	                    }
-	                    return false;
-	                })
-	                .collect(Collectors.toList());
+	            // Kiểm tra chứa input
+	            boolean containsH1 = tourName1.contains(normalizedInput);
+	            boolean containsH2 = tourName2.contains(normalizedInput);
+
+	            // Nếu một trong hai chứa input thì ưu tiên hơn
+	            if (containsH1 && !containsH2) return -1;
+	            if (!containsH1 && containsH2) return 1;
+
+	            // Nếu cả hai đều chứa hoặc không chứa, dùng khoảng cách Levenshtein theo tỷ lệ
+	            LevenshteinDistance levenshtein = new LevenshteinDistance();
+	            double distance1 = levenshtein.apply(normalizedInput, tourName1) / (double) tourName1.length();
+	            double distance2 = levenshtein.apply(normalizedInput, tourName2) / (double) tourName2.length();
+
+	            return Double.compare(distance1, distance2);
+	        });
+
+	        return list;
 	    }
+
+	    // Chuẩn hóa chuỗi (loại bỏ dấu)
+	    private static String normalizeString(String str) {
+	        return Normalizer.normalize(str, Normalizer.Form.NFD)
+	                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+	                .toLowerCase();
+	    }
+
 }
