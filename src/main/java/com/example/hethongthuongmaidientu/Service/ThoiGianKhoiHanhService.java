@@ -37,10 +37,11 @@ public class ThoiGianKhoiHanhService {
 				if(tt.get(i).getId()==t.getId()||
 					(!t.getThoiGian().toLocalDate().isBefore(tt.get(i).getThoiGian().toLocalDate())&&
 					!t.getThoiGian().toLocalDate().isAfter((tt.get(i).getThoiGian().plusDays(tt.get(i).getTour().getSoNgay()).toLocalDate())))
-					|| (!tt.get(i).getThoiGian().toLocalDate().isBefore(t.getThoiGian().toLocalDate())&&
-					!(tt.get(i).getThoiGian()).toLocalDate().isAfter((t.getThoiGian().plusDays(t.getTour().getSoNgay())).toLocalDate()))
-					|| (!(tt.get(i).getThoiGian().plusDays(tt.get(i).getTour().getSoNgay())).toLocalDate().isBefore(t.getThoiGian().toLocalDate())&&
-					!!(tt.get(i).getThoiGian().plusDays(tt.get(i).getTour().getSoNgay())).toLocalDate().isAfter((t.getThoiGian().plusDays(t.getTour().getSoNgay())).toLocalDate()))) {
+//					|| (!tt.get(i).getThoiGian().toLocalDate().isBefore(t.getThoiGian().toLocalDate())&&
+//					!(tt.get(i).getThoiGian()).toLocalDate().isAfter((t.getThoiGian().plusDays(t.getTour().getSoNgay())).toLocalDate()))
+//					|| (!(tt.get(i).getThoiGian().plusDays(tt.get(i).getTour().getSoNgay())).toLocalDate().isBefore(t.getThoiGian().toLocalDate())&&
+//					!!(tt.get(i).getThoiGian().plusDays(tt.get(i).getTour().getSoNgay())).toLocalDate().isAfter((t.getThoiGian().plusDays(t.getTour().getSoNgay())).toLocalDate()))
+					) {
 					System.out.println("KHÔNG QUA ĐƯỢC");
 					return false;
 				}
@@ -57,9 +58,11 @@ public class ThoiGianKhoiHanhService {
 		Tour t= tourRepository.findById(idtour).orElseThrow(()-> new EntityNotFoundException("Không tìm thấy tour"));
 		for(int i=0;i<t.getThoiGianKhoiHanh2().size();i++) {
 			if(kiemtratrung(t.getThoiGianKhoiHanh2().get(i), sdt,thoiGianKhoiHanhs)==true) {
+				System.out.println("COS ĐI VÀO ĐÂY");
 				return true;
 			}
 		}
+		System.out.println("COS ĐI VÀO SAI");
 		return false;
 	}
 }
