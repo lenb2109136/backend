@@ -34,6 +34,7 @@ public class Autho {
 	public ResponseEntity<Response> getTokkenNhanVien(@RequestParam(name = "sdt", required = false) String sdt, 
 			@RequestParam(name = "pass", required = false) String pass
 			) throws Exception{
+		
 		if(sdt==null||pass==null ||sdt=="" ||pass=="") throw new Exception("Vui lòng nhập đầy đủ thông tin");
 		NHANVIEN nv= nhanVienService.findBySoDienThoai(sdt);
 		KhachHang kh= khachHangService.findBySoDienThoai(sdt);
@@ -51,10 +52,18 @@ public class Autho {
 		if(nv!=null) {
 			authoreturn.put("token", jsonWebToken.createToken(nv.getSdt(),"nhanvien"));
 			authoreturn.put("role", "nhanvien");
+			authoreturn.put("ten", nv.getTen());
+			authoreturn.put("sdt", nv.getSdt());
+			authoreturn.put("id", nv.getId());
+			NHANVIEN.idnv=nv.getId();
 		}
 		else {
 			authoreturn.put("token", jsonWebToken.createToken(kh.getSoDienThoai(),"khachhang"));
 			authoreturn.put("role", "khachhang");
+			authoreturn.put("ten", kh.getTen());
+			authoreturn.put("sdt", kh.getSoDienThoai());
+			authoreturn.put("id", kh.getId());
+			KhachHang.idkh=kh.getId();
 		}
 		 Response r= new Response();
 		 r.setData(authoreturn);

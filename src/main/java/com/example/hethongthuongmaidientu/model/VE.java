@@ -1,80 +1,80 @@
 package com.example.hethongthuongmaidientu.model;
 
-import java.security.PrivateKey;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-
+import java.util.List;
+//22/3 ngon
 @Entity
-@Table(name = "VE")
+@Table(name = "ve")
 public class VE {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "V_ID")
-	private int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "V_ID")
+    private int id;
 
-	@Column(name = "V_GIA")
-	private float gia;
+    @Column(name = "V_GIA")
+    private float gia;
 
-	@ManyToOne
-	@JoinColumn(name = "KH_ID")
-	private KhachHang khachHang;
+    @Column(name = "V_NGAYDAT")
+    private LocalDateTime ngayDat;
 
-	@ManyToOne
-	@JsonIgnore
-	@JoinColumn(name = "TGKH_ID")
-	private ThoiGianKhoiHanh thoiGianKhoiHanh;
+    @ManyToOne(fetch = FetchType.EAGER) // Fetch eagerly
+    @JoinColumn(name = "KH_ID")
+    private KhachHang khachHang;
 
-	@Column(name = "V_NGAYDAT")
-	private LocalDateTime ngayDat;
+    @ManyToOne(fetch = FetchType.EAGER) // Fetch eagerly
+    @JoinColumn(name = "TGKH_ID")
+    private ThoiGianKhoiHanh thoiGianKhoiHanh;
 
-	public KhachHang getKhachHang() {
-		return khachHang;
-	}
+    @OneToMany(mappedBy = "ve", cascade = CascadeType.ALL)
+    private List<PhiDichVu> phiDichVu;
 
-	public LocalDateTime getNgayDat() {
-		return ngayDat;
-	}
+    // Getters and Setters
+    public int getId() {
+        return id;
+    }
 
-	public void setNgayDat(LocalDateTime ngayDat) {
-		this.ngayDat = ngayDat;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	public void setKhachHang(KhachHang khachHang) {
-		this.khachHang = khachHang;
-	}
+    public float getGia() {
+        return gia;
+    }
 
-	public ThoiGianKhoiHanh getThoiGianKhoiHanh() {
-		return thoiGianKhoiHanh;
-	}
+    public void setGia(float gia) {
+        this.gia = gia;
+    }
 
-	public void setThoiGianKhoiHanh(ThoiGianKhoiHanh thoiGianKhoiHanh) {
-		this.thoiGianKhoiHanh = thoiGianKhoiHanh;
-	}
+    public LocalDateTime getNgayDat() {
+        return ngayDat;
+    }
 
-	public int getId() {
-		return id;
-	}
+    public void setNgayDat(LocalDateTime ngayDat) {
+        this.ngayDat = ngayDat;
+    }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    public KhachHang getKhachHang() {
+        return khachHang;
+    }
 
-	public float getGia() {
-		return gia;
-	}
+    public void setKhachHang(KhachHang khachHang) {
+        this.khachHang = khachHang;
+    }
 
-	public void setGia(float gia) {
-		this.gia = gia;
-	}
+    public ThoiGianKhoiHanh getThoiGianKhoiHanh() {
+        return thoiGianKhoiHanh;
+    }
 
+    public void setThoiGianKhoiHanh(ThoiGianKhoiHanh thoiGianKhoiHanh) {
+        this.thoiGianKhoiHanh = thoiGianKhoiHanh;
+    }
+
+    public List<PhiDichVu> getPhiDichVu() {
+        return phiDichVu;
+    }
+
+    public void setPhiDichVu(List<PhiDichVu> phiDichVu) {
+        this.phiDichVu = phiDichVu;
+    }
 }

@@ -2,9 +2,15 @@ package com.example.hethongthuongmaidientu.Controller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.management.RuntimeErrorException;
 
@@ -20,11 +26,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.hethongthuongmaidientu.Service.ThoiGianKhoiHanhService;
 import com.example.hethongthuongmaidientu.Service.TourService;
 import com.example.hethongthuongmaidientu.model.CHAN;
 import com.example.hethongthuongmaidientu.model.GiaUuDai;
 import com.example.hethongthuongmaidientu.model.KhachHang;
 import com.example.hethongthuongmaidientu.model.Response;
+import com.example.hethongthuongmaidientu.model.StringSimilarityFilter;
 import com.example.hethongthuongmaidientu.model.ThoiGianKhoiHanh;
 import com.example.hethongthuongmaidientu.model.Tour;
 import com.example.hethongthuongmaidientu.repository.ChanRepository;
@@ -33,6 +41,7 @@ import com.example.hethongthuongmaidientu.repository.KhachHangRepository;
 import com.example.hethongthuongmaidientu.repository.ThoiGianKhoiHanhRepository;
 import com.example.hethongthuongmaidientu.repository.TourRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
@@ -44,7 +53,7 @@ public class TourController {
 
 	@Autowired
 	GiaUuDaiRepository giaUuDaiRepo;
-
+	
 	@Autowired
 	private KhachHangRepository khachHangRepository;
 
@@ -56,6 +65,12 @@ public class TourController {
 
 	@Autowired
 	ChanRepository chanRepo;
+	
+	@Autowired
+	private ThoiGianKhoiHanhService thoiGianKhoiHanhService;
+	
+	@Autowired
+	private ThoiGianKhoiHanhRepository thoiGianKhoiHanhRepository;
 
 	public boolean checkDate(LocalDateTime date1, LocalDateTime date2) {
 		return date1.isBefore(date2) && date1.isAfter(LocalDateTime.now());
@@ -64,7 +79,7 @@ public class TourController {
 	public boolean checkDateLocal(LocalDate date1, LocalDate date2) {
 		return date1.isBefore(date2) && date1.isAfter(LocalDate.now());
 	}
-
+		//chưa check
 	@GetMapping("/getl")
 	public ResponseEntity<Response> getListTou(@RequestParam("id") int id) {
 
@@ -105,114 +120,173 @@ public class TourController {
 	public boolean checkTrungUuDai(List<GiaUuDai> giaUuDais, GiaUuDai g, int index) {
 		for (int i = 0; i < giaUuDais.size(); i++) {
 			GiaUuDai t = giaUuDais.get(i);
-			if (i != index) {
-				if ((!t.getNgayGioApDung().isAfter(g.getNgayGioApDung())
-						&& !t.getNgayKetThuc().isBefore(g.getNgayKetThuc())) ||
-						!t.getNgayGioApDung().isBefore(g.getNgayGioApDung())
-								&& !t.getNgayGioApDung().isAfter(g.getNgayKetThuc())) {
-					return false;
-				}
+			if (i != index && (!t.getNgayGioApDung().isAfter(g.getNgayGioApDung())
+					&& !t.getNgayKetThuc().isBefore(g.getNgayKetThuc())) ||
+					!t.getNgayGioApDung().isBefore(g.getNgayGioApDung())
+							&& !t.getNgayGioApDung().isAfter(g.getNgayKetThuc())) {
+				return false;
 			}
-
 		}
 		return true;
+	}
+	public boolean checkTrungUuDai2(List<GiaUuDai> giaUuDais, LocalDateTime t) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
+        for (int i = 0; i < giaUuDais.size(); i++) {
+            GiaUuDai g1 = giaUuDais.get(i);
+            for (int j = i + 1; j < giaUuDais.size(); j++) {
+                GiaUuDai g2 = giaUuDais.get(j);
+
+                if (!(g1.getNgayKetThuc().isBefore(g2.getNgayGioApDung()) || 
+                      g2.getNgayKetThuc().isBefore(g1.getNgayGioApDung()))) {
+                    throw new IllegalArgumentException(
+                        "Thời gian ưu đãi bị trùng tại ngày " + g1.getNgayGioApDung().format(formatter)
+                    );
+                }
+            }
+
+            if (!t.isBefore(g1.getNgayGioApDung())&& !t.isAfter(g1.getNgayKetThuc())) {
+                throw new IllegalArgumentException("Thời gian ưu đãi thứ : "+(i+1)+" không phù hợp với ngày khởi hành "+t.format(formatter));
+            }
+        }
+
+        return true; 
+    }
+	public void validateChans(List<CHAN> chans, int totalDays) throws Exception {
+	    if (chans == null || chans.isEmpty()) {
+	        throw new IllegalArgumentException("Danh sách chặn không được rỗng.");
+	    }
+
+	    chans.sort(Comparator.comparingInt(CHAN::getNgayBatDau));
+	    Set<Integer> coveredDays = new HashSet<>();
+	    int prevEnd = 0; 
+
+	    for (int i = 0; i < chans.size(); i++) {
+	        CHAN chan = chans.get(i);
+	        if (chan.getMoTa() == null || chan.getMoTa().length() == 0) {
+	            throw new Exception("Mô tả chặn thứ " + (i + 1) + " không được để trống.");
+	        }
+
+	        int start = chan.getNgayBatDau();
+	        int end = chan.getNgayKetThuc();
+
+	        if (start > end) {
+	            throw new IllegalArgumentException("Chặn thứ " + (i + 1) + " có ngày bắt đầu lớn hơn ngày kết thúc.");
+	        }
+
+	        if (end > totalDays) {
+	            throw new IllegalArgumentException("Chặn thứ " + (i + 1) + " bị vượt số ngày của tour.");
+	        }
+
+	        if (start > prevEnd + 1) {
+	            throw new IllegalArgumentException("Chặn thứ " + (i + 1) + " bị thiếu ngày từ " + (prevEnd + 1) + " đến " + (start - 1));
+	        }
+
+	        for (int j = start; j <= end; j++) {
+	            if (!coveredDays.add(j)) {
+	                throw new IllegalArgumentException("Chặn thứ " + (i + 1) + " có ngày trùng với chặn khác.");
+	            }
+	        }
+
+	        prevEnd = end;
+	    }
+
+	    for (int day = 1; day <= totalDays; day++) {
+	        if (!coveredDays.contains(day)) {
+	            throw new IllegalArgumentException("Chặn bị thiếu ngày thứ " + day);
+	        }
+	    }
 	}
 
 	@Transactional
 	@PostMapping("/update")
-	public ResponseEntity<Object> update(@Valid @RequestBody Tour tour) {
-		System.out.println("CON CHO");
+	
+	public ResponseEntity<Object> update(@Valid @RequestBody Tour tour,BindingResult bindingRel) throws Exception {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+		if (bindingRel.hasErrors()) {
+			String errorMessage = bindingRel.getFieldErrors().get(0).getDefaultMessage();
+			return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+		}
 		int p = 0;
+		if(tour.getMoTa()==null||tour.getMoTa().length()==0) {
+			throw new Exception("Vui lòng cung cấp thông tin mô tả cho tour");
+		}
 		for (ThoiGianKhoiHanh t : tour.getThoiGianKhoiHanh2()) {
 			if (t.getThoiGian().isBefore(LocalDateTime.now())) {
 				return new ResponseEntity<>("Thời gian khởi hành không hợp lệ", HttpStatus.BAD_REQUEST);
 			}
-			if (!checkNhanVienTrungCa(tour.getSoNgay(), p, tour.getThoiGianKhoiHanh2(), t.getThoiGian(),
+			if (!checkNhanVienTrungCa(tour.getSoNgay(), p, tour.getThoiGianKhoiHanh2().stream().filter(v->v.getId()==null).toList(), t.getThoiGian(),
 					t.getThoiGian().plusDays(tour.getSoNgay()), t.getNhanVien().getId())) {
-				return new ResponseEntity<>("Nhân viên bị trùng lịch tour", HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST,"Nhân viên "+t.getNhanVien().getTen()+" đã có lịch hướng dẫn trùng", null), HttpStatus.OK);
 			}
 			t.setTour(tour);
 			int i = 0;
-			for (GiaUuDai b : t.getGiaUuDai()) {
-				if (!checkTrungUuDai(t.getGiaUuDai(), b, i)) {
-					return new ResponseEntity<>("Thời gian ưu đãi không được trùng", HttpStatus.BAD_REQUEST);
+			checkTrungUuDai2(t.getGiaUuDai(),t.getThoiGian());
+			for(int f=0;f<t.getGiaUuDai().size();f++) {
+				if(t.getGiaUuDai().get(f).getGia()>=t.getGia()) {
+					throw new Exception("Giá ưu đãi thứ: "+(f+1)+ " của thời gian khởi hành: "+t.getThoiGian().format(formatter));
 				}
-				b.setThoiGianKhoiHanhl(t);
-				if (!checkDate(b.getNgayGioApDung(), b.getNgayKetThuc())) {
-					return new ResponseEntity<>("Thời gian ưu đãi không hợp lệ", HttpStatus.BAD_REQUEST);
-				}
-				if (b.getGia() < 0) {
-					return new ResponseEntity<>("Giá ưu đãi ko hợp lệ", HttpStatus.BAD_REQUEST);
-				}
-				i++;
 			}
 			p++;
 		}
-		System.out.println("HELLO WOLD");
-		for (CHAN c : tour.getChan()) {
-			c.setTour(tour);
-			if (!checkDateLocal(c.getNgayBatDau(), c.getNgayKetThuc())) {
-				return new ResponseEntity<>("Thời gian chặn không hợp lệ", HttpStatus.BAD_REQUEST);
-			}
+		for(int y=0;y<tour.getChan().size();y++) {
+			tour.getChan().get(y).setTour(tour);
 		}
+		
+		validateChans(tour.getChan(), tour.getSoNgay());
 		tourRepository.save(tour);
 		thoiGianKhoiHanhRepo.saveAll(tour.getThoiGianKhoiHanh2());
 		tour.getThoiGianKhoiHanh2().forEach(v -> {
 			giaUuDaiRepo.saveAll(v.getGiaUuDai());
 		});
 		chanRepo.saveAll(tour.getChan());
-		tourRepository.deleteThoiGianKhoiHanhNotInList(tour.getThoiGianKhoiHanh2(), tour);
-		tourRepository.deleteChanNotInList(tour.getChan(), tour);
-		return new ResponseEntity<>("Thêm thành công", HttpStatus.OK);
+		Response r= new Response(HttpStatus.OK,"ok",null);
+		return new ResponseEntity<>(r, HttpStatus.OK);
 	}
 
 	@PostMapping("add")
 	@Transactional
-	public ResponseEntity<Object> addTour(@Valid @RequestBody Tour tour, BindingResult bindingRel) {
+	public ResponseEntity<Object> addTour(@Valid @RequestBody Tour tour, BindingResult bindingRel) throws Exception {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 		if (bindingRel.hasErrors()) {
 			String errorMessage = bindingRel.getFieldErrors().get(0).getDefaultMessage();
-			System.out.println("có lỗ");
 			return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 		}
 		int p = 0;
+		if(tour.getMoTa()==null||tour.getMoTa().length()==0) {
+			throw new Exception("Vui lòng cung cấp thông tin mô tả cho tour");
+		}
 		for (ThoiGianKhoiHanh t : tour.getThoiGianKhoiHanh2()) {
 			if (t.getThoiGian().isBefore(LocalDateTime.now())) {
 				return new ResponseEntity<>("Thời gian khởi hành không hợp lệ", HttpStatus.BAD_REQUEST);
 			}
 			if (!checkNhanVienTrungCa(tour.getSoNgay(), p, tour.getThoiGianKhoiHanh2(), t.getThoiGian(),
 					t.getThoiGian().plusDays(tour.getSoNgay()), t.getNhanVien().getId())) {
-				return new ResponseEntity<>("Nhân viên bị trùng lịch tour", HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST,"Nhân viên "+t.getNhanVien().getTen()+" đã có lịch hướng dẫn trùng", null), HttpStatus.OK);
 			}
 			t.setTour(tour);
 			int i = 0;
-			for (GiaUuDai b : t.getGiaUuDai()) {
-				if (!checkTrungUuDai(t.getGiaUuDai(), b, i)) {
-					return new ResponseEntity<>("Thời gian ưu đãi không được trùng", HttpStatus.BAD_REQUEST);
+			checkTrungUuDai2(t.getGiaUuDai(),t.getThoiGian());
+			for(int f=0;f<t.getGiaUuDai().size();f++) {
+				if(t.getGiaUuDai().get(f).getGia()>=t.getGia()) {
+					throw new Exception("Giá ưu đãi thứ: "+(f+1)+ " của thời gian khởi hành: "+t.getThoiGian().format(formatter));
 				}
-				b.setThoiGianKhoiHanhl(t);
-				if (!checkDate(b.getNgayGioApDung(), b.getNgayKetThuc())) {
-					return new ResponseEntity<>("Thời gian ưu đãi không hợp lệ", HttpStatus.BAD_REQUEST);
-				}
-				if (b.getGia() < 0) {
-					return new ResponseEntity<>("Giá ưu đãi ko hợp lệ", HttpStatus.BAD_REQUEST);
-				}
-				i++;
 			}
 			p++;
 		}
-		for (CHAN c : tour.getChan()) {
-			c.setTour(tour);
-			if (!checkDateLocal(c.getNgayBatDau(), c.getNgayKetThuc())) {
-				return new ResponseEntity<>("Thời gian chặn không hợp lệ", HttpStatus.BAD_REQUEST);
-			}
+		for(int y=0;y<tour.getChan().size();y++) {
+			tour.getChan().get(y).setTour(tour);
 		}
+		
+		validateChans(tour.getChan(), tour.getSoNgay());
 		tourRepository.save(tour);
 		thoiGianKhoiHanhRepo.saveAll(tour.getThoiGianKhoiHanh2());
 		tour.getThoiGianKhoiHanh2().forEach(v -> {
 			giaUuDaiRepo.saveAll(v.getGiaUuDai());
 		});
 		chanRepo.saveAll(tour.getChan());
-		return new ResponseEntity<>("Thêm thành công", HttpStatus.OK);
+		Response r= new Response(HttpStatus.OK,"ok",null);
+		return new ResponseEntity<>(r, HttpStatus.OK);
 	}
 
 	@GetMapping("/getbyid")
@@ -221,35 +295,81 @@ public class TourController {
 		return new ResponseEntity<Object>(tourRepository.findById(id).orElse(null), HttpStatus.OK);
 	}
 
+	
+	//ĐÃ CHECK ĐIỀU KIỆN-2
 	@GetMapping("/gethometour")
-	public ResponseEntity<Response> getHomeTour() {
-
+	public ResponseEntity<Response> getHomeTour(@RequestParam("sdt") String sdt) {
+		List<Map<Object, Object>> mapList = tourService.getHomeTour();
+		mapList.removeIf(map -> {
+			if(thoiGianKhoiHanhService.loctour((Integer)map.get("T_ID"), sdt)==false
+					|| tourService.kiemtracon((Integer) map.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
+		});
 		Response r = new Response();
-		r.setData(tourService.getHomeTour());
+		r.setData(mapList);
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
 
+	
+	//ĐÃ CHECK ĐIỀU KIỆN ĐẦY ĐỦ -2
 	@GetMapping("/getListTour")
-	public ResponseEntity<Response> getListTour() {
-
+	public ResponseEntity<Response> getListTour(@RequestParam("sdt") String sdt) {
+		List<Map<Object, Object>> mapList = tourService.getListTour();
+		mapList.removeIf(map -> {
+			if(thoiGianKhoiHanhService.loctour((Integer)map.get("T_ID"), sdt)==false
+					|| tourService.kiemtracon((Integer) map.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
+		});
 		Response r = new Response();
-		r.setData(tourService.getListTour());
+		r.setData(mapList);
+		r.setMessage("OK");
+		r.setStatus(HttpStatus.OK);
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
+	}
+	@GetMapping("/getlistour2")
+	public ResponseEntity<Response> getListTour(@RequestParam("cart") List<Map<Object, Object>> ma, @RequestParam("sdt") String sdt) {
+		List<Map<Object, Object>> mapList = tourService.getListTour();
+		mapList.removeIf(map -> {
+			if(thoiGianKhoiHanhService.loctour((Integer)map.get("T_ID"), sdt)==false
+					|| tourService.kiemtracon((Integer) map.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
+		});
+		Response r = new Response();
+		r.setData(mapList);
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
 
+	
+	//ĐÃ CHECK ĐIỀU KIỆN-2
 	@GetMapping("/getListTourByLoai")
-	public ResponseEntity<Response> getListTourByLoai(@RequestParam("idloai") int id) {
+	public ResponseEntity<Response> getListTourByLoai(@RequestParam("idloai") int id,@RequestParam("sdt") String sdt) {
+		List<Map<Object, Object>> mapList = tourService.getListTour(id);
+		mapList.removeIf(map -> {
+			if(thoiGianKhoiHanhService.loctour((Integer)map.get("T_ID"), sdt)==false
+					|| tourService.kiemtracon((Integer) map.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
+		});
 		Response r = new Response();
-		r.setData(tourService.getListTour(id));
+		r.setData(mapList);
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
 
+	
+	//CHƯA CHECK----------------------------------------------------------------------------
 	@GetMapping("/getListTourfavourite")
 	public ResponseEntity<Response> getListTourfavourite() {
 
@@ -259,53 +379,119 @@ public class TourController {
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
-
+	//ĐÃ CHECK-2
 	@GetMapping("/getinfortour")
-	public ResponseEntity<Response> getInforTour(@RequestParam("id") int id,
-			@RequestParam(name = "idnv", required = false) String idnv) {
-		Tour t = tourService.getInforTour(id);
-		KhachHang k = khachHangRepository.findBySoDienThoai(idnv);
-		List<ThoiGianKhoiHanh> ttGianKhoiHanhs = thoiGianKhoiHanhRepo.getThoiGianKhoiHanh(k.getId());
-		t.getThoiGianKhoiHanh2().removeIf((data) -> {
-			if (data.getThoiGian().isAfter(LocalDateTime.now().plusHours(6))
-					&& data.getVe().size() < t.getSoNguoiThamGia()
-					&& thoiGianKhoiHanhService.kiemtratrung(data, idnv, ttGianKhoiHanhs)) {
-				return false;
-			}
-			return true;
-		});
+	public ResponseEntity<Response> getInforTour(@RequestParam("id") int id, @RequestParam(name = "idnv",required = false) String idnv) {
+			Tour t=tourService.getInforTour(id);
+			KhachHang k =khachHangRepository.findBySoDienThoai(idnv);
+			System.out.println("id nhân viên; "+k);
+			List<ThoiGianKhoiHanh> ttGianKhoiHanhs=thoiGianKhoiHanhRepository.getThoiGianKhoiHanh(k.getId());
+			t.getThoiGianKhoiHanh2().removeIf((data)->{
+				if(data.getThoiGian().isAfter(LocalDateTime.now().plusHours(6))&&data.getVe().size()<t.getSoNguoiThamGia()
+					&&thoiGianKhoiHanhService.kiemtratrung(data,idnv,ttGianKhoiHanhs)) {
+					return false;
+				}
+				return true;
+			});
+			
 		Response r = new Response();
-		r.setData(tourService.getInforTour(id));
+		r.setData(t);
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 
 	}
-
+	//ĐÃ CHECK-2
 	@PostMapping("/getfilter")
 	public ResponseEntity<Response> getInforTour(@RequestBody Map<String, Object> map) {
+		System.out.println((String) map.get("sdt"));
+		List<Map<Object, Object>> mapList = tourService.getByFilter(map);
+		System.out.println("danh sách : "+mapList.size());
+		mapList.removeIf(mapT -> {
+			if(thoiGianKhoiHanhService.loctour((Integer)mapT.get("T_ID"), (String) map.get("sdt"))==false
+					|| tourService.kiemtracon((Integer) mapT.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
+		});
 		Response r = new Response();
-		r.setData(tourService.getByFilter(map));
+		r.setData(mapList);
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 
 	}
+	
+	@GetMapping("/getAllTours")
+	public ResponseEntity<Response> getAllTours() {
+	    List<Map<Object, Object>> mapList = tourService.getListTour();
+	    mapList.removeIf(map -> tourService.kiemtracon((Integer) map.get("T_ID")) == false);
+	    Response r = new Response();
+	    r.setData(mapList);
+	    r.setMessage("OK");
+	    r.setStatus(HttpStatus.OK);
+	    
+	    return new ResponseEntity<Response>(r, HttpStatus.OK);
+	}
 
-	@GetMapping("/getAll")
-	public ResponseEntity<Response> getAllAtribute() {
+	@GetMapping("/getsearch")
+	public ResponseEntity<Response> getListTodur(@RequestParam("sdt") String sdt,@RequestParam("thamso") String thamso) {
+		List<Map<Object, Object>> mapList = tourService.getListTour();
+		mapList.removeIf(map -> {
+			if(thoiGianKhoiHanhService.loctour((Integer)map.get("T_ID"), sdt)==false
+					|| tourService.kiemtracon((Integer) map.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
+		});
+		List<Map<Object, Object>> hh=StringSimilarityFilter.filterBySimilarity(thamso,mapList);
 		Response r = new Response();
+		r.setData(hh);
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
+	
+	@PostMapping("filtermix")
+	public ResponseEntity<Response> filtermix(@RequestBody Map<String, Object> map) {
+		System.out.println((String) map.get("sdt"));
+		List<Map<Object, Object>> mapList = tourService.getByFilter(map);
+		System.out.println("danh sách : "+mapList.size());
+		mapList.removeIf(mapT -> {
+			if(thoiGianKhoiHanhService.loctour((Integer)mapT.get("T_ID"), (String) map.get("sdt"))==false
+					|| tourService.kiemtracon((Integer) mapT.get("T_ID"))==false) {
+				return true;
+			}
+			return false;
+		});
+		List<Map<Object, Object>> jk= StringSimilarityFilter.filterBySimilarity((String) map.get("thamso"), mapList);
+		Response r = new Response();
+		r.setData(jk);
+		r.setMessage("OK");
+		r.setStatus(HttpStatus.OK);
+		return new ResponseEntity<Response>(r, HttpStatus.OK);
 
+	}
+	
+//	@GetMapping("/getAll")
+//	public ResponseEntity<Response> getAllAtribute() {
+//		Response r = new Response();
+//		r.setMessage("OK");
+//		r.setStatus(HttpStatus.OK);
+//		return new ResponseEntity<Response>(r, HttpStatus.OK);
+//	}
+
+	//ĐÃ CHECK CÒN HÀNG
 	@GetMapping("/getadmintour")
 	public ResponseEntity<Response> getAllAdmin() {
+		List<Tour> t= tourRepository.getadmintour();
+		t.removeIf(data-> {
+			return tourService.kiemtracon(data.getId());
+		});
 		Response r = new Response();
 		r.setMessage("OK");
 		r.setStatus(HttpStatus.OK);
-		r.setData(tourRepository.getadmintour());
+		r.setData(t);
 		return new ResponseEntity<Response>(r, HttpStatus.OK);
 	}
 
@@ -331,7 +517,13 @@ public class TourController {
 	// }
 	// return new ResponseEntity<Object>(HttpStatus.BAD_REQUEST);
 	// }
+	
+	@PostMapping("/getten")
 
+	public ResponseEntity<Response> getten(@RequestParam("ten") String ten, @RequestParam("id") int idloai){
+		return new ResponseEntity<Response>
+		(new Response(HttpStatus.OK,"ok",tourRepository.getListTourr(ten,idloai)), HttpStatus.OK);
+	}
 	@PostMapping("/uudai/update")
 	public ResponseEntity<Response> updateUuDaiTour(@RequestBody GiaUuDai giaUuDai) throws Exception {
 		System.out.println("dkcdhuichu");
@@ -355,6 +547,38 @@ public class TourController {
 		}
 		giaUuDaiRepo.save(g);
 		return new ResponseEntity<Response>(new Response(HttpStatus.OK, "ok", null), HttpStatus.OK);
+	}
+	
+	@GetMapping("/gettags")
+	public ResponseEntity<Response> gettags(){
+		return  new ResponseEntity<Response>(new Response(HttpStatus.OK,"ok",tourRepository.getTags()),HttpStatus.OK);
+	}
+	
+	@GetMapping("/getmaxmin")
+	public ResponseEntity<Response> getmaxmin(@RequestParam("id") int id) {
+		Tour t= tourRepository.findById(id).orElseThrow(()-> new EntityNotFoundException("Không tìm thấy tour phù hợp"));
+		float min=1000000000;
+		float max=0;
+		for(int i=0;i<t.getThoiGianKhoiHanh2().size();i++) {
+			if(t.getThoiGianKhoiHanh2().get(i).getGia()<min) {
+				min=t.getThoiGianKhoiHanh2().get(i).getGia();
+			}
+			if(t.getThoiGianKhoiHanh2().get(i).getGia()>min) {
+				max=t.getThoiGianKhoiHanh2().get(i).getGia();
+			}
+			for(int u=0;u<t.getThoiGianKhoiHanh2().get(i).getGiaUuDai().size();u++) {
+				if(t.getThoiGianKhoiHanh2().get(i).getGiaUuDai().get(u).getGia()<min) {
+					min=t.getThoiGianKhoiHanh2().get(i).getGiaUuDai().get(u).getGia();
+				}
+				if(t.getThoiGianKhoiHanh2().get(i).getGiaUuDai().get(u).getGia()>max) {
+					max=t.getThoiGianKhoiHanh2().get(i).getGiaUuDai().get(u).getGia();
+				}
+			}
+		}
+		Map<Object, Object> p= new HashMap<Object, Object>();
+		p.put("max", max);
+		p.put("min", min);
+		return  new ResponseEntity<Response>(new Response(HttpStatus.OK,"ok",p),HttpStatus.OK);
 	}
 
 }

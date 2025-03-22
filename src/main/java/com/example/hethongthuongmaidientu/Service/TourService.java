@@ -10,6 +10,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.hethongthuongmaidientu.model.ThoiGianKhoiHanh;
 import com.example.hethongthuongmaidientu.model.Tour;
 import com.example.hethongthuongmaidientu.repository.TourRepository;
 
@@ -39,11 +40,20 @@ public class TourService {
 	}
 
 	public List<Map<Object, Object>> getByFilter(Map<String, Object> map) {
-		String ten = (String) map.get("ten");
-		if (ten == null || ten == "") {
-			ten = "";
+		System.out.println("đi vào đây");
+		
+		List<Map<Object, Object>> l = new ArrayList<Map<Object,Object>>();
+		if((Integer) map.get("loai")==0) {
+			System.out.println("huhuko");
+			l=tourRepository.getListTourFilterBYyNotLoai();
 		}
-		List<Map<Object, Object>> l = tourRepository.getListTourFilter((Integer) map.get("loai"), ten);
+		
+		else {
+			System.out.println("VÀO ĐÂY");
+			l=tourRepository.getListTourFilterByLT((Integer) map.get("loai"));
+			System.out.println(l.size());
+		}
+		System.out.println("huhu");
 		List<Map<Object, Object>> l2 = new ArrayList<Map<Object, Object>>();
 		List<Map<Object, Object>> ngay = (List<Map<Object, Object>>) map.get("dsNgay");
 		List<Map<Object, Object>> ThoiLuong = (List<Map<Object, Object>>) map.get("thoiLuong");
@@ -56,19 +66,23 @@ public class TourService {
 			int songay = (int) l.get(i).get("T_SONGAY");
 			float gia = ((Number) l.get(i).get("gia")).floatValue();
 			boolean kiemtra = false;
-
+		
 			if (gia >= a && gia <= b) {
+				System.out.println("vào giá");
 				if (ngay.size() == 0 && ThoiLuong.size() == 0) {
 					l2.add(l.get(i));
-				} else if (ngay.size() == 0) {
-					for (int k = 0; k < ThoiLuong.size(); k++) {
+				}
+				else if(ngay.size() == 0) {
+					System.out.println("vào else");
+					for (int k = 0; k < ThoiLuong.size(); k++) { 
 						if (songay >= (Integer) ThoiLuong.get(k).get("batDau")
 								&& songay <= (Integer) ThoiLuong.get(k).get("KetThuc")) {
-							l2.add(l.get(i));
+									l2.add(l.get(i));
 						} else {
 						}
 					}
-				} else {
+				}
+				else  {
 					if (ngay.size() == 0) {
 						l2.add(l.get(i));
 					} else {
@@ -80,11 +94,11 @@ public class TourService {
 								if (ThoiLuong.size() == 0) {
 									l2.add(l.get(i));
 								} else {
-									for (int k = 0; k < ThoiLuong.size(); k++) {
+									for (int k = 0; k < ThoiLuong.size(); k++) { 
 										if (songay >= (Integer) ThoiLuong.get(k).get("batDau")
 												&& songay <= (Integer) ThoiLuong.get(k).get("KetThuc")) {
-											l2.add(l.get(i));
-											break;
+													l2.add(l.get(i));
+													break;
 										} else {
 											f = false;
 										}
@@ -99,23 +113,25 @@ public class TourService {
 					}
 				}
 			}
+			else {
+				System.out.println("Giá không hợp lệ");
+			}
 
 		}
 		return l2;
 
 	}
-
 	public boolean kiemtracon(int id) {
-		Tour t = tourRepository.findById(id)
-				.orElseThrow(() -> new EntityNotFoundException("Không tìm thấy tour"));
+	    Tour t = tourRepository.findById(id)
+	            .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy tour"));
 
-		for (ThoiGianKhoiHanh data : t.getThoiGianKhoiHanh2()) {
-			if (!data.getThoiGian().isBefore(LocalDateTime.now().plusHours(6))
-					&& data.getVe().size() < t.getSoNguoiThamGia()) {
-				return true;
-			}
-		}
-
-		return false;
+	    for (ThoiGianKhoiHanh data : t.getThoiGianKhoiHanh2()) {
+	        if (!data.getThoiGian().isBefore(LocalDateTime.now().plusHours(6)) 
+	                && data.getVe().size() < t.getSoNguoiThamGia()) {
+	            return true;
+	        }
+	    }
+	    
+	    return false; 
 	}
 }

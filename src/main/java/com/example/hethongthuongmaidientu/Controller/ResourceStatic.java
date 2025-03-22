@@ -24,7 +24,7 @@ public class ResourceStatic {
 	@GetMapping("/{name}")
 	public void returnDataSource(@PathVariable("name") String name, HttpServletRequest rq,HttpServletResponse ep) {
 		System.out.println(name);
-		File f= new File("C://Users//ADMIN//Documents//A- CT263//images2//"+name);
+		File f= new File("C://Users//ntngo//Documents//A- CT263//images2//"+name);
 		System.out.println("tên đường dẫn file: "+f.getName());
 		try {
 			OutputStream o= ep.getOutputStream();
