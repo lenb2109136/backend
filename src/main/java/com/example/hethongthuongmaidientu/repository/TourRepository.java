@@ -73,65 +73,73 @@ public interface TourRepository extends JpaRepository<Tour, Integer> {
 	List<ThoiGianKhoiHanh> getThoiGianKhoiHanhByNhanVien(@Param("nhanVienId") Integer nhanVienId,
 			@Param("l") List<ThoiGianKhoiHanh> thoiGianKhoiHanh);
 
-	@Query(value = "SELECT \r\n"
-			+ "    t.T_ID, \r\n"
-			+ "    t.T_TEN, \r\n"
-			+ "    t.T_SONGAY, \r\n"
-			+ "    t.T_SODEM, \r\n"
-			+ "    t.T_ANH, \r\n"
-			+ "    AVG(tt.TGKH_GIA) AS gia \r\n"
-			+ "FROM \r\n"
-			+ "    tour t\r\n"
-			+ "JOIN \r\n"
-			+ "    thoigiankhoihanh tt ON t.T_ID = tt.T_ID  \r\n"
-			+ "GROUP BY \r\n"
-			+ "    t.T_ID, t.T_TEN, t.T_SONGAY, t.T_SODEM, t.T_ANH;", nativeQuery = true)
+	@Query(value = "SELECT " +
+	        "    t.T_ID, " +
+	        "    t.T_TEN, " +
+	        "    t.T_SONGAY, " +
+	        "    t.T_SODEM, " +
+	        "    t.T_ANH, " +
+	        "    MAX(tt.TGKH_GIA) AS gia " + 
+	        "FROM " +
+	        "    tour t " +
+	        "JOIN " +
+	        "    thoigiankhoihanh tt ON t.T_ID = tt.T_ID " +
+	        "GROUP BY " +
+	        "    t.T_ID, t.T_TEN, t.T_SONGAY, t.T_SODEM, t.T_ANH", 
+	        nativeQuery = true)
 	public List<Map<Object, Object>> getListTour();
+
 	
-	@Query(value = "SELECT \r\n"
-			+ "    t.T_ID, \r\n"
-			+ "    t.T_TEN, \r\n"
-			+ "    t.T_SONGAY, \r\n"
-			+ "    t.T_SODEM, \r\n"
-			+ "    t.T_ANH, \r\n"
-			+ "    AVG(tt.TGKH_GIA) AS gia \r\n"
-			+ "FROM \r\n"
-			+ "    tour t\r\n"
-			+ "JOIN \r\n"
-			+ "    thoigiankhoihanh tt ON t.T_ID = tt.T_ID where t.LT_ID=:lt  \r\n"
-			+ "GROUP BY \r\n"
-			+ "    t.T_ID, t.T_TEN, t.T_SONGAY, t.T_SODEM, t.T_ANH;", nativeQuery = true)
+	@Query(value = "SELECT " +
+	        "    t.T_ID, " +
+	        "    t.T_TEN, " +
+	        "    t.T_SONGAY, " +
+	        "    t.T_SODEM, " +
+	        "    t.T_ANH, " +
+	        "    AVG(tt.TGKH_GIA) AS gia " +
+	        "FROM " +
+	        "    tour t " +
+	        "JOIN " +
+	        "    thoigiankhoihanh tt ON t.T_ID = tt.T_ID " +
+	        "WHERE " +
+	        "    t.LT_ID = :lt " +  // Điều kiện lọc loại tour
+	        "GROUP BY " +
+	        "    t.T_ID, t.T_TEN, t.T_SONGAY, t.T_SODEM, t.T_ANH", 
+	        nativeQuery = true)
 	public List<Map<Object, Object>> getListTourByLoai(int lt);
 
 	@Query(value = "SELECT t.T_ID,t.T_TEN,t.T_SONGAY,t.T_SODEM,t.T_ANH,AVG(tt.TGKH_GIA) as gia FROM tour t \r\n"
 			+ "JOIN thoigiankhoihanh tt ON t.T_ID=tt.T_ID  WHERE LT_ID=:lt GROUP BY t.T_ID ", nativeQuery = true)
 	public List<Map<Object, Object>> getListTour(int lt);
 
-	@Query(value = "SELECT DISTINCT \r\n"
-			+ "    t.T_ID,\r\n"
-			+ "    t.T_TEN,\r\n"
-			+ "    t.T_SONGAY,\r\n"
-			+ "    t.T_SODEM,\r\n"
-			+ "    t.T_ANH,\r\n"
-			+ "    DATE_FORMAT(tt.TGKH_THOIGIAN, '%Y-%m-%d %H:%i:%s.0') AS TGKH_THOIGIAN,\r\n"
-			+ "    AVG(tt.TGKH_GIA) AS gia\r\n"
-			+ "FROM tour t\r\n"
-			+ "JOIN thoigiankhoihanh tt ON t.T_ID = tt.T_ID  \r\n"
-			+ "where t.LT_ID = :id\r\n"
-			+ "GROUP BY t.T_ID, t.T_TEN, t.T_SONGAY, t.T_SODEM, t.T_ANH, TGKH_THOIGIAN", nativeQuery = true)
+	@Query(value = "SELECT " +
+	        "    t.T_ID, " +
+	        "    t.T_TEN, " +
+	        "    t.T_SONGAY, " +
+	        "    t.T_SODEM, " +
+	        "    t.T_ANH, " +
+	        "    DATE_FORMAT(MIN(tt.TGKH_THOIGIAN), '%Y-%m-%d %H:%i:%s.0') AS TGKH_THOIGIAN, " +
+	        "    AVG(tt.TGKH_GIA) AS gia " +
+	        "FROM tour t " +
+	        "JOIN thoigiankhoihanh tt ON t.T_ID = tt.T_ID " +
+	        "WHERE t.LT_ID = :id " +
+	        "GROUP BY t.T_ID, t.T_TEN, t.T_SONGAY, t.T_SODEM, t.T_ANH",
+	        nativeQuery = true)
 	public List<Map<Object, Object>> getListTourFilterByLT(int id);
-	@Query(value = "SELECT DISTINCT \r\n"
-			+ "    t.T_ID,\r\n"
-			+ "    t.T_TEN,\r\n"
-			+ "    t.T_SONGAY,\r\n"
-			+ "    t.T_SODEM,\r\n"
-			+ "    t.T_ANH,\r\n"
-			+ "    DATE_FORMAT(tt.TGKH_THOIGIAN, '%Y-%m-%d %H:%i:%s.0') AS TGKH_THOIGIAN,\r\n"
-			+ "    AVG(tt.TGKH_GIA) AS gia\r\n"
-			+ "FROM tour t\r\n"
-			+ "JOIN thoigiankhoihanh tt ON t.T_ID = tt.T_ID  \r\n"
-			+ "GROUP BY t.T_ID, t.T_TEN, t.T_SONGAY, t.T_SODEM, t.T_ANH, TGKH_THOIGIAN", nativeQuery = true)
+	@Query(value = "SELECT " +
+	        "    t.T_ID, " +
+	        "    t.T_TEN, " +
+	        "    t.T_SONGAY, " +
+	        "    t.T_SODEM, " +
+	        "    t.T_ANH, " +
+	        "    DATE_FORMAT(MIN(tt.TGKH_THOIGIAN), '%Y-%m-%d %H:%i:%s.0') AS TGKH_THOIGIAN, " +
+	        "    AVG(tt.TGKH_GIA) AS gia " +
+	        "FROM tour t " +
+	        "JOIN thoigiankhoihanh tt ON t.T_ID = tt.T_ID " +
+	        "GROUP BY t.T_ID, t.T_TEN, t.T_SONGAY, t.T_SODEM, t.T_ANH",
+	        nativeQuery = true)
 	public List<Map<Object, Object>> getListTourFilterBYyNotLoai();
+
 
 	@Modifying
 	@Query("delete from ThoiGianKhoiHanh p where p not in:l and p.tour=:tour")

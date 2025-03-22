@@ -260,16 +260,16 @@ public class TourController {
 			if (t.getThoiGian().isBefore(LocalDateTime.now())) {
 				return new ResponseEntity<>("Thời gian khởi hành không hợp lệ", HttpStatus.BAD_REQUEST);
 			}
-			if (!checkNhanVienTrungCa(tour.getSoNgay(), p, tour.getThoiGianKhoiHanh2(), t.getThoiGian(),
-					t.getThoiGian().plusDays(tour.getSoNgay()), t.getNhanVien().getId())) {
-				return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST,"Nhân viên "+t.getNhanVien().getTen()+" đã có lịch hướng dẫn trùng", null), HttpStatus.OK);
-			}
+//			if (!checkNhanVienTrungCa(tour.getSoNgay(), p, tour.getThoiGianKhoiHanh2(), t.getThoiGian(),
+//					t.getThoiGian().plusDays(tour.getSoNgay()), t.getNhanVien().getId())) {
+//				return new ResponseEntity<>(new Response(HttpStatus.BAD_REQUEST,"Nhân viên "+t.getNhanVien().getTen()+" đã có lịch hướng dẫn trùng", null), HttpStatus.OK);
+//			}
 			t.setTour(tour);
 			int i = 0;
 			checkTrungUuDai2(t.getGiaUuDai(),t.getThoiGian());
 			for(int f=0;f<t.getGiaUuDai().size();f++) {
 				if(t.getGiaUuDai().get(f).getGia()>=t.getGia()) {
-					throw new Exception("Giá ưu đãi thứ: "+(f+1)+ " của thời gian khởi hành: "+t.getThoiGian().format(formatter));
+					throw new Exception("Giá ưu đãi thứ: "+(f+1)+ " của thời gian khởi hành: "+t.getThoiGian().format(formatter)+" không được lướn hơn giá gốc");
 				}
 			}
 			p++;
